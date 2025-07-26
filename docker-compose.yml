@@ -1,0 +1,116 @@
+version: "3.8"
+
+services:
+  orchestrator:
+    build:
+      context: ./orchestrator
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - TEMPORAL_HOST=host.docker.internal:7233
+      - ELIGIBILITY_SERVICE_URL=http://eligibility-service
+      - CUSTOMER_OFFER_SERVICE_URL=http://customer-offer-service
+      - SALES_AGREEMENT_SERVICE_URL=http://sales-agreement-service
+      - CONSUMER_LOAN_SERVICE_URL=http://consumer-loan-service
+      - PAYMENT_ORDER_SERVICE_URL=http://payment-order-service
+      - BFF_INTERNAL_URL=http://bff
+    depends_on:
+      - eligibility-service
+      - customer-offer-service
+      - sales-agreement-service
+      - consumer-loan-service
+      - payment-order-service
+    networks:
+      - temporal-network
+    ports:
+      - "5000:8080"
+
+  bff:
+    build:
+      context: ./bff
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ORCHESTRATOR_URL=http://orchestrator:8080
+    depends_on:
+      - orchestrator
+    networks:
+      - temporal-network
+    ports:
+      - "5001:80"
+
+  eligibility-service:
+    build:
+      context: ./eligibility-service
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    networks:
+      - temporal-network
+    ports:
+      - "5002:80"
+
+  customer-offer-service:
+    build:
+      context: ./customer-offer-service
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    networks:
+      - temporal-network
+    ports:
+      - "5003:80"
+
+  sales-agreement-service:
+    build:
+      context: ./sales-agreement-service
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    networks:
+      - temporal-network
+    ports:
+      - "5004:80"
+
+  consumer-loan-service:
+    build:
+      context: ./consumer-loan-service
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    networks:
+      - temporal-network
+    ports:
+      - "5005:80"
+
+  payment-order-service:
+    build:
+      context: ./payment-order-service
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    networks:
+      - temporal-network
+    ports:
+      - "5006:80"
+
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    networks:
+      - temporal-network
+    ports:
+      - "3000:80"
+
+networks:
+  temporal-network:
+    driver: bridge
+    name: temporal-network
