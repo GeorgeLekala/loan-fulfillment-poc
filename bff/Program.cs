@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using System.ComponentModel.DataAnnotations;
 
 // This service acts as a backend‑for‑frontend (BFF) for the React UI.
 // It proxies requests to the orchestrator to start workflows and
@@ -83,95 +84,29 @@ var orchestratorBaseUrl = Environment.GetEnvironmentVariable("ORCHESTRATOR_URL")
 // orchestrator and returns the generated application id to the
 // frontend.  Any errors from the orchestrator (for example if
 // Temporal is unavailable) propagate to the caller.
-app.MapPost("/api/loan-applications", async (HttpContext context) =>
+app.MapPost("/api/loan-applications", async (LoanApplicationRequest request) =>
 {
-    // Read raw JSON to debug what we're actually receiving
-    var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
-    Console.WriteLine($"[BFF] Raw JSON received: {body}");
+    Console.WriteLine($"[BFF] Received BIAN loan application for: {request.ApplicantProfile?.FullName}");
+    Console.WriteLine($"[BFF] Requested amount: {request.RequestedAmount:C}");
+    Console.WriteLine($"[BFF] Loan purpose: {request.LoanPreferences?.LoanPurpose}");
     
-    try {
-        // Manually deserialize with options to see what happens
-        var request = JsonSerializer.Deserialize<LoanApplicationRequest>(body, new JsonSerializerOptions 
-        { 
-            PropertyNameCaseInsensitive = true,
-            WriteIndented = true 
-        });
-        
-        Console.WriteLine($"[BFF] Deserialized request: {JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true })}");
-        
-        using var http = new HttpClient { BaseAddress = new Uri(orchestratorBaseUrl) };
-        var response = await http.PostAsJsonAsync("/api/loan-applications", request);
-        if (!response.IsSuccessStatusCode)
-        {
-            return Results.StatusCode((int)response.StatusCode);
-        }
-        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
-        return Results.Ok(result);
-    }
-    catch (Exception ex)
+    using var http = new HttpClient { BaseAddress = new Uri(orchestratorBaseUrl) };
+    var response = await http.PostAsJsonAsync("/api/loan-applications", request);
+    
+    if (!response.IsSuccessStatusCode)
     {
-        Console.WriteLine($"[BFF] Deserialization error: {ex.Message}");
-        Console.WriteLine($"[BFF] Stack trace: {ex.StackTrace}");
-        return Results.BadRequest($"Invalid request format: {ex.Message}");
+        var error = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"[BFF] Orchestrator error: {response.StatusCode} - {error}");
+        return Results.StatusCode((int)response.StatusCode);
     }
+    
+    var result = await response.Content.ReadFromJsonAsync<ApplicationResponse>();
+    Console.WriteLine($"[BFF] Created application: {result?.ApplicationId}");
+    return Results.Ok(result);
 })
 .WithName("CreateLoanApplication")
 .WithSummary("Create a new loan application")
-.WithDescription(@"Submits a new loan application with comprehensive applicant details following BIAN standards.
-
-**Example Request:**
-```json
-{
-  ""ApplicantId"": ""CUST-123456"",
-  ""RequestedAmount"": 50000,
-  ""ApplicantProfile"": {
-    ""FullName"": ""John Smith"",
-    ""DateOfBirth"": ""1985-01-01T00:00:00Z"",
-    ""SSN"": ""8501015009087"",
-    ""Email"": ""john.smith@email.com"",
-    ""PrimaryPhone"": ""+27821234567"",
-    ""PrimaryAddress"": {
-      ""StreetAddress"": ""123 Main Street"",
-      ""City"": ""Cape Town"",
-      ""State"": ""Western Cape"",
-      ""PostalCode"": ""8001"",
-      ""Country"": ""ZAF"",
-      ""AddressType"": ""Residential""
-    },
-    ""Employment"": {
-      ""EmploymentStatus"": ""Permanent"",
-      ""EmployerName"": ""ABC Company"",
-      ""AnnualIncome"": 180000,
-      ""YearsOfEmployment"": 5,
-      ""JobTitle"": ""Software Developer""
-    },
-    ""Finances"": {
-      ""MonthlyIncome"": 15000,
-      ""MonthlyExpenses"": 8000,
-      ""ExistingDebt"": 25000,
-      ""NumberOfDependents"": 2,
-      ""HasBankAccount"": true,
-      ""BankName"": ""Standard Bank""
-    }
-  },
-  ""LoanPreferences"": {
-    ""LoanPurpose"": ""Debt Consolidation"",
-    ""PreferredTermMonths"": 36,
-    ""MaxMonthlyPayment"": 2500,
-    ""ProductType"": ""Personal Loan"",
-    ""AutoPayEnrollment"": false
-  }
-}
-```
-
-**Example Response:**
-```json
-{
-  ""applicationId"": ""12345678-1234-1234-1234-123456789012""
-}
-```
-
-**BIAN Compliance:** This endpoint follows Banking Industry Architecture Network standards with structured data separation for customer profiles, financial assessment, and loan preferences.");
+.WithDescription("Submits a new loan application with comprehensive applicant details following BIAN standards. See the schema below for the required request structure.");
 
 // Forward a document verification signal to the orchestrator.  Returns
 // 202 Accepted on success.
@@ -241,23 +176,52 @@ app.MapPost("/internal/notify/{id}", async (string id, HttpContext context, Even
 
 app.Run();
 
+// Application response model
+record ApplicationResponse(
+    [property: JsonPropertyName("applicationId")] string ApplicationId
+);
+
 // Enhanced request model with comprehensive applicant information following BIAN standards
 record LoanApplicationRequest(
     [property: JsonPropertyName("ApplicantId")] string? ApplicantId, 
-    [property: JsonPropertyName("RequestedAmount")] decimal RequestedAmount,
-    [property: JsonPropertyName("ApplicantProfile")] ApplicantProfile? ApplicantProfile = null,
-    [property: JsonPropertyName("LoanPreferences")] LoanPreferences? LoanPreferences = null
+    [property: JsonPropertyName("RequestedAmount")] 
+    [Range(1000, 1000000, ErrorMessage = "Requested amount must be between 1,000 and 1,000,000")]
+    decimal RequestedAmount,
+    [property: JsonPropertyName("ApplicantProfile")] 
+    [Required(ErrorMessage = "Applicant profile is required")]
+    ApplicantProfile? ApplicantProfile = null,
+    [property: JsonPropertyName("LoanPreferences")] 
+    [Required(ErrorMessage = "Loan preferences are required")]
+    LoanPreferences? LoanPreferences = null
 );
 
 record ApplicantProfile(
-    [property: JsonPropertyName("FullName")] string FullName,
-    [property: JsonPropertyName("DateOfBirth")] string DateOfBirth,
-    [property: JsonPropertyName("SSN")] string SSN,
-    [property: JsonPropertyName("Email")] string Email,
-    [property: JsonPropertyName("PrimaryPhone")] string PrimaryPhone,
-    [property: JsonPropertyName("PrimaryAddress")] AddressInformation PrimaryAddress,
-    [property: JsonPropertyName("Employment")] EmploymentInformation Employment,
-    [property: JsonPropertyName("Finances")] FinancialInformation Finances
+    [property: JsonPropertyName("FullName")] 
+    [Required(ErrorMessage = "Full name is required")]
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "Full name must be between 2 and 100 characters")]
+    string FullName,
+    [property: JsonPropertyName("DateOfBirth")] 
+    [Required(ErrorMessage = "Date of birth is required")]
+    string DateOfBirth,
+    [property: JsonPropertyName("SSN")] 
+    [Required(ErrorMessage = "SSN/ID number is required")]
+    string SSN,
+    [property: JsonPropertyName("Email")] 
+    [Required(ErrorMessage = "Email is required")]
+    [EmailAddress(ErrorMessage = "Invalid email format")]
+    string Email,
+    [property: JsonPropertyName("PrimaryPhone")] 
+    [Required(ErrorMessage = "Primary phone is required")]
+    string PrimaryPhone,
+    [property: JsonPropertyName("PrimaryAddress")] 
+    [Required(ErrorMessage = "Primary address is required")]
+    AddressInformation PrimaryAddress,
+    [property: JsonPropertyName("Employment")] 
+    [Required(ErrorMessage = "Employment information is required")]
+    EmploymentInformation Employment,
+    [property: JsonPropertyName("Finances")] 
+    [Required(ErrorMessage = "Financial information is required")]
+    FinancialInformation Finances
 );
 
 record AddressInformation(
