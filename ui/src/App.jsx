@@ -411,7 +411,7 @@ export default function App() {
 
       {/* Global Progress Bar - Always Visible */}
       {applicationId && (
-        <div style={{ width: '100%', maxWidth: '1000px' }}>
+        <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
           <GlobalProgressBar currentStage={currentStage} applicationId={applicationId} />
         </div>
       )}
@@ -474,7 +474,7 @@ export default function App() {
           />
         </div>
       ) : (
-        <div style={{ width: '100%', maxWidth: '1000px' }}>
+        <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
           <div className="main-card">
             <div className="card-header">
               <h2>Application Status</h2>

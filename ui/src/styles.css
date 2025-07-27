@@ -64,7 +64,7 @@ body {
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   margin-bottom: 2rem;
 }
 
