@@ -4,7 +4,6 @@ import PersonalInfoForm from './components/PersonalInfoForm';
 import EmploymentForm from './components/EmploymentForm';
 import FinancialForm from './components/FinancialForm';
 import LoanPreferencesForm from './components/LoanPreferencesForm';
-import StatusTimeline from './components/StatusTimeline';
 import LoanOfferCard from './components/LoanOfferCard';
 import EligibilityResults from './components/EligibilityResults';
 import AgreementView from './components/AgreementView';
@@ -26,21 +25,6 @@ export default function App() {
   const [account, setAccount] = useState(null);
   const [payment, setPayment] = useState(null);
 
-  // Map workflow stages to progress bar stages
-  const getProgressStage = (workflowStage) => {
-    const stageMapping = {
-      'application': 'application',
-      'eligibility': 'processing',
-      'offer': 'processing', 
-      'documents': 'processing',
-      'approval': 'processing',
-      'agreement': 'agreement',
-      'bank-details': 'bank-details',
-      'account': 'disbursement',
-      'disbursement': 'disbursement'
-    };
-    return stageMapping[workflowStage] || 'application';
-  };
   const [formData, setFormData] = useState({
     applicantId: '',
     requestedAmount: 25000,
@@ -428,7 +412,7 @@ export default function App() {
       {/* Global Progress Bar - Always Visible */}
       {applicationId && (
         <div style={{ width: '100%', maxWidth: '1000px' }}>
-          <GlobalProgressBar currentStage={getProgressStage(currentStage)} />
+          <GlobalProgressBar currentStage={currentStage} applicationId={applicationId} />
         </div>
       )}
 
@@ -514,8 +498,6 @@ export default function App() {
                   {statusMessage}
                 </div>
               )}
-              
-              <StatusTimeline currentStage={currentStage} applicationId={applicationId} />
               
               {eligibilityData && (
                 <EligibilityResults eligibilityData={eligibilityData} />
