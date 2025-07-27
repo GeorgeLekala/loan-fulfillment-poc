@@ -4,6 +4,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.ComponentModel.DataAnnotations;
 using LoanFulfilment.Orchestrator;
 using Temporalio.Client;
 
@@ -106,66 +108,46 @@ app.UseCors("AllowUI");
 // started successfully.  The client receives the application id in
 // the response body.
 
-app.MapPost("/api/loan-applications", async (JsonElement input, TemporalClient client) =>
+app.MapPost("/api/loan-applications", async (LoanApplicationRequest request, TemporalClient client) =>
 {
     var appId = Guid.NewGuid().ToString();
 
-    Console.WriteLine($"[ORCH] Deserialized request: {JsonSerializer.Serialize(input, new JsonSerializerOptions { WriteIndented = true })}");
+    Console.WriteLine($"[ORCH] Received BIAN loan application for: {request.ApplicantProfile?.FullName}");
+    Console.WriteLine($"[ORCH] Requested amount: {request.RequestedAmount:C}");
+    Console.WriteLine($"[ORCH] Loan purpose: {request.LoanPreferences?.LoanPurpose}");
 
     // Map the BIAN-compliant request to the orchestrator model
-    var applicantProfile = input.GetProperty("ApplicantProfile");
-    var employment = applicantProfile.GetProperty("Employment");
-    var finances = applicantProfile.GetProperty("Finances");
-    var loanPreferences = input.GetProperty("LoanPreferences");
-    
     var loanApplicationData = new LoanApplicationData
     {
-        ApplicantName = applicantProfile.GetProperty("FullName").GetString() ?? "",
-        SSN = applicantProfile.GetProperty("SSN").GetString() ?? "",
-        Email = applicantProfile.GetProperty("Email").GetString() ?? "",
-        PhoneNumber = applicantProfile.GetProperty("PrimaryPhone").GetString() ?? "",
-        AnnualIncome = employment.GetProperty("AnnualIncome").GetDecimal(),
-        EmploymentStatus = employment.GetProperty("EmploymentStatus").GetString() ?? "",
-        RequestedAmount = input.GetProperty("RequestedAmount").GetDecimal(),
-        LoanPurpose = loanPreferences.GetProperty("LoanPurpose").GetString() ?? "Personal Loan",
-        PreferredTermMonths = loanPreferences.GetProperty("PreferredTermMonths").GetInt32(),
-        MaxMonthlyPayment = loanPreferences.TryGetProperty("MaxMonthlyPayment", out var maxPayment) && 
-                          maxPayment.ValueKind != JsonValueKind.Null ? 
-                          maxPayment.GetDecimal() : null,
-        ProductType = loanPreferences.GetProperty("ProductType").GetString() ?? "Personal Loan",
-        AutoPayEnrollment = loanPreferences.GetProperty("AutoPayEnrollment").GetBoolean()
+        ApplicantName = request.ApplicantProfile?.FullName ?? "",
+        SSN = request.ApplicantProfile?.SSN ?? "",
+        Email = request.ApplicantProfile?.Email ?? "",
+        PhoneNumber = request.ApplicantProfile?.PrimaryPhone ?? "",
+        AnnualIncome = request.ApplicantProfile?.Employment?.AnnualIncome ?? 0,
+        EmploymentStatus = request.ApplicantProfile?.Employment?.EmploymentStatus ?? "",
+        RequestedAmount = request.RequestedAmount,
+        LoanPurpose = request.LoanPreferences?.LoanPurpose ?? "Personal Loan",
+        PreferredTermMonths = request.LoanPreferences?.PreferredTermMonths ?? 24,
+        MaxMonthlyPayment = request.LoanPreferences?.MaxMonthlyPayment,
+        ProductType = request.LoanPreferences?.ProductType ?? "Personal Loan",
+        AutoPayEnrollment = request.LoanPreferences?.AutoPayEnrollment ?? false
     };
     
     Console.WriteLine($"[ORCHESTRATOR] Starting workflow for applicant: {loanApplicationData.ApplicantName}, Amount: {loanApplicationData.RequestedAmount}");
     
     var options = new WorkflowOptions(appId, "LoanTaskQueue");
     await client.StartWorkflowAsync((ILoanWorkflow wf) => wf.RunAsync(appId, loanApplicationData), options);
-    return Results.Ok(new { applicationId = appId });
+    return Results.Ok(new ApplicationResponse(appId));
 })
 .WithName("StartLoanWorkflow")
 .WithSummary("Start a new loan application workflow")
-.WithDescription(@"Initiates a new Temporal workflow for processing a loan application with the provided applicant data.
+.WithDescription(@"Initiates a new Temporal workflow for processing a loan application with BIAN-compliant applicant data.
 
-**Example Request:**
-```json
-{
-  ""FullName"": ""John Smith"",
-  ""IdNumber"": ""8501015009087"",
-  ""EmailAddress"": ""john.smith@email.com"",
-  ""MobileNumber"": ""+27821234567"",
-  ""MonthlyIncome"": 15000,
-  ""EmploymentType"": ""Permanent"",
-  ""RequestedAmount"": 50000,
-  ""MaxMonthlyPayment"": 2500
-}
-```
-
-**Example Response:**
-```json
-{
-  ""applicationId"": ""12345678-1234-1234-1234-123456789012""
-}
-```
+**Request Model:**
+This endpoint accepts a strongly-typed `LoanApplicationRequest` with comprehensive validation:
+- **ApplicantProfile**: Complete customer information with validation
+- **LoanPreferences**: Loan terms and product preferences
+- **RequestedAmount**: Loan amount (1,000 - 1,000,000)
 
 **Workflow Process:**
 1. **Eligibility Assessment**: Evaluates creditworthiness and loan capacity
@@ -175,7 +157,9 @@ app.MapPost("/api/loan-applications", async (JsonElement input, TemporalClient c
 5. **Account Creation**: Sets up loan account in core banking system
 6. **Fund Disbursement**: Transfers approved funds to customer account
 
-**Returns:** Unique application ID for tracking the workflow through completion.");
+**Returns:** Unique application ID for tracking the workflow through completion.
+
+**BIAN Compliance:** Follows Banking Industry Architecture Network standards for loan application data structures.");
 
 // Endpoint to signal that documents have been verified for a given
 // application.  Sends a signal by name to the running workflow.  If
@@ -228,3 +212,135 @@ POST /api/loan-applications/12345678-1234-1234-1234-123456789012/accept-offer
 **Process:** This signal transitions the workflow from the offer review stage to agreement creation, account setup, and fund disbursement stages.");
 
 app.Run();
+
+// Application response model
+record ApplicationResponse(
+    [property: JsonPropertyName("applicationId")] string ApplicationId
+);
+
+// Enhanced request model with comprehensive applicant information following BIAN standards
+record LoanApplicationRequest(
+    [property: JsonPropertyName("ApplicantId")] string? ApplicantId, 
+    [property: JsonPropertyName("RequestedAmount")] 
+    [Range(1000, 1000000, ErrorMessage = "Requested amount must be between 1,000 and 1,000,000")]
+    decimal RequestedAmount,
+    [property: JsonPropertyName("ApplicantProfile")] 
+    [Required(ErrorMessage = "Applicant profile is required")]
+    ApplicantProfile? ApplicantProfile = null,
+    [property: JsonPropertyName("LoanPreferences")] 
+    [Required(ErrorMessage = "Loan preferences are required")]
+    LoanPreferences? LoanPreferences = null
+);
+
+record ApplicantProfile(
+    [property: JsonPropertyName("FullName")] 
+    [Required(ErrorMessage = "Full name is required")]
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "Full name must be between 2 and 100 characters")]
+    string FullName,
+    [property: JsonPropertyName("DateOfBirth")] 
+    [Required(ErrorMessage = "Date of birth is required")]
+    string DateOfBirth,
+    [property: JsonPropertyName("SSN")] 
+    [Required(ErrorMessage = "SSN/ID number is required")]
+    string SSN,
+    [property: JsonPropertyName("Email")] 
+    [Required(ErrorMessage = "Email is required")]
+    [EmailAddress(ErrorMessage = "Invalid email format")]
+    string Email,
+    [property: JsonPropertyName("PrimaryPhone")] 
+    [Required(ErrorMessage = "Primary phone is required")]
+    string PrimaryPhone,
+    [property: JsonPropertyName("PrimaryAddress")] 
+    [Required(ErrorMessage = "Primary address is required")]
+    AddressInformation PrimaryAddress,
+    [property: JsonPropertyName("Employment")] 
+    [Required(ErrorMessage = "Employment information is required")]
+    EmploymentInformation Employment,
+    [property: JsonPropertyName("Finances")] 
+    [Required(ErrorMessage = "Financial information is required")]
+    FinancialInformation Finances
+);
+
+record AddressInformation(
+    [property: JsonPropertyName("StreetAddress")] 
+    [Required(ErrorMessage = "Street address is required")]
+    [StringLength(200, ErrorMessage = "Street address cannot exceed 200 characters")]
+    string StreetAddress,
+    [property: JsonPropertyName("City")] 
+    [Required(ErrorMessage = "City is required")]
+    [StringLength(100, ErrorMessage = "City cannot exceed 100 characters")]
+    string City,
+    [property: JsonPropertyName("State")] 
+    [Required(ErrorMessage = "State is required")]
+    [StringLength(50, ErrorMessage = "State cannot exceed 50 characters")]
+    string State,
+    [property: JsonPropertyName("PostalCode")] 
+    [Required(ErrorMessage = "Postal code is required")]
+    [StringLength(20, ErrorMessage = "Postal code cannot exceed 20 characters")]
+    string PostalCode,
+    [property: JsonPropertyName("Country")] 
+    [StringLength(50, ErrorMessage = "Country cannot exceed 50 characters")]
+    string Country = "USA",
+    [property: JsonPropertyName("AddressType")] 
+    string AddressType = "Residential"
+);
+
+record EmploymentInformation(
+    [property: JsonPropertyName("EmploymentStatus")] 
+    [Required(ErrorMessage = "Employment status is required")]
+    string EmploymentStatus,
+    [property: JsonPropertyName("EmployerName")] 
+    [Required(ErrorMessage = "Employer name is required")]
+    [StringLength(200, ErrorMessage = "Employer name cannot exceed 200 characters")]
+    string EmployerName,
+    [property: JsonPropertyName("AnnualIncome")] 
+    [Range(0, 10000000, ErrorMessage = "Annual income must be between 0 and 10,000,000")]
+    decimal AnnualIncome,
+    [property: JsonPropertyName("YearsOfEmployment")] 
+    [Range(0, 50, ErrorMessage = "Years of employment must be between 0 and 50")]
+    int YearsOfEmployment,
+    [property: JsonPropertyName("JobTitle")] 
+    [Required(ErrorMessage = "Job title is required")]
+    [StringLength(100, ErrorMessage = "Job title cannot exceed 100 characters")]
+    string JobTitle,
+    [property: JsonPropertyName("EmployerAddress")] 
+    AddressInformation? EmployerAddress = null
+);
+
+record FinancialInformation(
+    [property: JsonPropertyName("MonthlyIncome")] 
+    [Range(0, 1000000, ErrorMessage = "Monthly income must be between 0 and 1,000,000")]
+    decimal MonthlyIncome,
+    [property: JsonPropertyName("MonthlyExpenses")] 
+    [Range(0, 1000000, ErrorMessage = "Monthly expenses must be between 0 and 1,000,000")]
+    decimal MonthlyExpenses,
+    [property: JsonPropertyName("ExistingDebt")] 
+    [Range(0, 10000000, ErrorMessage = "Existing debt must be between 0 and 10,000,000")]
+    decimal ExistingDebt,
+    [property: JsonPropertyName("NumberOfDependents")] 
+    [Range(0, 20, ErrorMessage = "Number of dependents must be between 0 and 20")]
+    int NumberOfDependents,
+    [property: JsonPropertyName("HasBankAccount")] 
+    bool HasBankAccount,
+    [property: JsonPropertyName("BankName")] 
+    [StringLength(200, ErrorMessage = "Bank name cannot exceed 200 characters")]
+    string? BankName = null
+);
+
+record LoanPreferences(
+    [property: JsonPropertyName("LoanPurpose")] 
+    [Required(ErrorMessage = "Loan purpose is required")]
+    [StringLength(100, ErrorMessage = "Loan purpose cannot exceed 100 characters")]
+    string LoanPurpose,
+    [property: JsonPropertyName("PreferredTermMonths")] 
+    [Range(6, 360, ErrorMessage = "Preferred term must be between 6 and 360 months")]
+    int PreferredTermMonths,
+    [property: JsonPropertyName("MaxMonthlyPayment")] 
+    [Range(0, 100000, ErrorMessage = "Max monthly payment must be between 0 and 100,000")]
+    decimal? MaxMonthlyPayment,
+    [property: JsonPropertyName("ProductType")] 
+    [StringLength(50, ErrorMessage = "Product type cannot exceed 50 characters")]
+    string ProductType = "Personal Loan",
+    [property: JsonPropertyName("AutoPayEnrollment")] 
+    bool AutoPayEnrollment = false
+);
