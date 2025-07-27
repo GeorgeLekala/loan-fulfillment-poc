@@ -131,15 +131,6 @@ const BankDetailsForm = ({ applicationId, onComplete }) => {
           Secure your loan disbursement by providing your banking information. 
           All details are encrypted and protected.
         </p>
-        <div className="progress-indicator">
-          <div className="progress-step completed">1</div>
-          <div className="progress-line completed"></div>
-          <div className="progress-step completed">2</div>
-          <div className="progress-line completed"></div>
-          <div className="progress-step active">3</div>
-          <div className="progress-line"></div>
-          <div className="progress-step">4</div>
-        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="bank-details-form">

@@ -10,6 +10,7 @@ import EligibilityResults from './components/EligibilityResults';
 import AgreementView from './components/AgreementView';
 import DisbursementView from './components/DisbursementView';
 import BankDetailsForm from './components/BankDetailsForm';
+import GlobalProgressBar from './components/GlobalProgressBar';
 
 // Base URL for the BFF API
 const API_BASE = 'http://localhost:5001/api';
@@ -24,6 +25,22 @@ export default function App() {
   const [agreement, setAgreement] = useState(null);
   const [account, setAccount] = useState(null);
   const [payment, setPayment] = useState(null);
+
+  // Map workflow stages to progress bar stages
+  const getProgressStage = (workflowStage) => {
+    const stageMapping = {
+      'application': 'application',
+      'eligibility': 'processing',
+      'offer': 'processing', 
+      'documents': 'processing',
+      'approval': 'processing',
+      'agreement': 'agreement',
+      'bank-details': 'bank-details',
+      'account': 'disbursement',
+      'disbursement': 'disbursement'
+    };
+    return stageMapping[workflowStage] || 'application';
+  };
   const [formData, setFormData] = useState({
     applicantId: '',
     requestedAmount: 25000,
@@ -408,6 +425,13 @@ export default function App() {
         <p>Secure, NCR-compliant, and comprehensive loan processing</p>
       </div>
 
+      {/* Global Progress Bar - Always Visible */}
+      {applicationId && (
+        <div style={{ width: '100%', maxWidth: '1000px' }}>
+          <GlobalProgressBar currentStage={getProgressStage(currentStage)} />
+        </div>
+      )}
+
       {!applicationId ? (
         <div className="main-card">
           <div className="card-header">
@@ -458,11 +482,13 @@ export default function App() {
         </div>
       ) : currentStage === 'disbursement' || (account && currentStage === 'account') ? (
         // Render DisbursementView independently for a clean, celebratory layout
-        <DisbursementView 
-          account={account}
-          payment={payment}
-          applicationId={applicationId}
-        />
+        <div style={{ width: '100%', maxWidth: '1000px' }}>
+          <DisbursementView 
+            account={account}
+            payment={payment}
+            applicationId={applicationId}
+          />
+        </div>
       ) : (
         <div style={{ width: '100%', maxWidth: '1000px' }}>
           <div className="main-card">
