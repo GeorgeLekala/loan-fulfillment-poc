@@ -28,8 +28,8 @@ export default function App() {
     requestedAmount: 25000,
     applicantProfile: {
       // NCR Minimum Required Fields for South Africa
-      fullName: 'Auto-filled from ID',      // Auto-populated from SA ID
-      dateOfBirth: '1990-01-01',            // Auto-populated from SA ID  
+      fullName: 'John Doe',                 // Will be updated by user
+      dateOfBirth: '1990-01-01',            // Default date  
       ssn: '',                              // SA ID Number (mandatory)
       email: 'customer@email.com',          // Contact information
       primaryPhone: '',                     // Mobile Number (mandatory)
@@ -38,7 +38,7 @@ export default function App() {
         city: 'Johannesburg',               // Default SA city
         state: 'Gauteng',                   // Default SA province
         postalCode: '2000',                 // Default postal code
-        country: 'ZAR',
+        country: 'ZAF',
         addressType: 'Residential'
       },
       employment: {
@@ -251,19 +251,56 @@ export default function App() {
     setStatusMessage('Submitting your application...');
     
     try {
-      // Create NCR-compliant 7-field payload that matches the orchestrator's expected format
+      // Create BIAN-compliant LoanApplicationRequest payload
       const requestPayload = {
-        "FullName": formData.applicantProfile?.fullName || "Auto-filled from ID",
-        "IdNumber": formData.applicantProfile?.ssn || "",
-        "MobileNumber": formData.applicantProfile?.primaryPhone || "",
-        "EmailAddress": formData.applicantProfile?.email || "",
-        "MonthlyIncome": parseFloat(formData.applicantProfile?.finances?.monthlyIncome) || 0,
-        "EmploymentType": formData.applicantProfile?.employment?.employmentStatus || "",
-        "RequestedAmount": parseFloat(formData.requestedAmount) || 0
+        "ApplicantId": `CUST-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+        "RequestedAmount": parseFloat(formData.requestedAmount) || 0,
+        "ApplicantProfile": {
+          "FullName": formData.applicantProfile?.fullName || "John Doe",
+          "DateOfBirth": formData.applicantProfile?.dateOfBirth && formData.applicantProfile.dateOfBirth !== "Auto-filled from ID" 
+            ? formData.applicantProfile.dateOfBirth 
+            : "1990-01-01",
+          "SSN": formData.applicantProfile?.ssn || "",
+          "Email": formData.applicantProfile?.email || "customer@email.com",
+          "PrimaryPhone": formData.applicantProfile?.primaryPhone || "",
+          "PrimaryAddress": {
+            "StreetAddress": formData.applicantProfile?.primaryAddress?.streetAddress || "Not provided",
+            "City": formData.applicantProfile?.primaryAddress?.city || "Johannesburg",
+            "State": formData.applicantProfile?.primaryAddress?.state || "Gauteng",
+            "PostalCode": formData.applicantProfile?.primaryAddress?.postalCode || "2000",
+            "Country": formData.applicantProfile?.primaryAddress?.country || "ZAF",
+            "AddressType": formData.applicantProfile?.primaryAddress?.addressType || "Residential"
+          },
+          "Employment": {
+            "EmploymentStatus": formData.applicantProfile?.employment?.employmentStatus || "",
+            "EmployerName": formData.applicantProfile?.employment?.employerName || "Not specified",
+            "AnnualIncome": (parseFloat(formData.applicantProfile?.finances?.monthlyIncome) || 0) * 12,
+            "YearsOfEmployment": formData.applicantProfile?.employment?.yearsOfEmployment || 2,
+            "JobTitle": formData.applicantProfile?.employment?.jobTitle || "Not specified"
+          },
+          "Finances": {
+            "MonthlyIncome": parseFloat(formData.applicantProfile?.finances?.monthlyIncome) || 0,
+            "MonthlyExpenses": parseFloat(formData.applicantProfile?.finances?.monthlyExpenses) || 0,
+            "ExistingDebt": parseFloat(formData.applicantProfile?.finances?.existingDebt) || 0,
+            "NumberOfDependents": parseInt(formData.applicantProfile?.finances?.numberOfDependents) || 0,
+            "HasBankAccount": formData.applicantProfile?.finances?.hasBankAccount !== false,
+            "BankName": formData.applicantProfile?.finances?.bankName || "Standard Bank"
+          }
+        },
+        "LoanPreferences": {
+          "LoanPurpose": formData.loanPreferences?.loanPurpose || "Personal Loan",
+          "PreferredTermMonths": parseInt(formData.loanPreferences?.preferredTermMonths) || 24,
+          "MaxMonthlyPayment": formData.loanPreferences?.maxMonthlyPayment ? parseFloat(formData.loanPreferences.maxMonthlyPayment) : null,
+          "ProductType": formData.loanPreferences?.productType || "Personal Loan",
+          "AutoPayEnrollment": formData.loanPreferences?.autoPayEnrollment || false
+        }
       };
 
-      console.log('Submitting NCR-compliant application:', requestPayload);
+      console.log('Submitting BIAN-compliant application:', requestPayload);
       console.log('JSON payload:', JSON.stringify(requestPayload, null, 2));
+
+      // Log the raw JSON that will be sent to BFF
+      console.log('[UI] About to send to BFF:', JSON.stringify(requestPayload, null, 2));
 
       const res = await fetch(`${API_BASE}/loan-applications`, {
         method: 'POST',

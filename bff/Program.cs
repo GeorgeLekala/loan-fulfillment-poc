@@ -22,7 +22,25 @@ builder.Services.AddSwaggerGen(c =>
     { 
         Title = "Loan Fulfillment BFF API", 
         Version = "v1",
-        Description = "Backend-for-Frontend API for the Loan Fulfillment system. Provides proxy endpoints to the orchestrator and real-time event streaming via Server-Sent Events."
+        Description = @"**Backend-for-Frontend API for the Loan Fulfillment System**
+
+This service acts as the primary interface between the React UI and the backend microservices. It provides:
+
+- **Loan Application Management**: Create and track loan applications
+- **Real-time Updates**: Server-Sent Events for workflow progress monitoring  
+- **Document Verification**: Signal document completion to workflow
+- **Offer Management**: Accept loan offers and proceed with application
+- **BIAN Compliance**: Banking Industry Architecture Network compliant data structures
+
+**Architecture:**
+- Proxies requests to the Temporal-based orchestrator
+- Maintains event queues for real-time UI updates
+- Handles BIAN-compliant loan applications with comprehensive data models
+- Supports concurrent client connections via SSE
+
+**Base URL:** `http://localhost:5001`
+
+**Real-time Events:** Connect to `/api/loan-applications/{id}/events` for live workflow updates"
     });
 });
 
@@ -58,7 +76,7 @@ if (app.Environment.IsDevelopment())
 // Get orchestrator base URL from environment or default to the
 // orchestrator service name.  This value is captured into the
 // delegates below.
-var orchestratorBaseUrl = Environment.GetEnvironmentVariable("ORCHESTRATOR_URL") ?? "http://orchestrator";
+var orchestratorBaseUrl = Environment.GetEnvironmentVariable("ORCHESTRATOR_URL") ?? "http://orchestrator:5002";
 
 // Start a new loan application.  The request body contains the
 // comprehensive applicant data.  The BFF forwards this to the
@@ -67,26 +85,93 @@ var orchestratorBaseUrl = Environment.GetEnvironmentVariable("ORCHESTRATOR_URL")
 // Temporal is unavailable) propagate to the caller.
 app.MapPost("/api/loan-applications", async (HttpContext context) =>
 {
-    var request = await context.Request.ReadFromJsonAsync<JsonElement>();
-    if (request.ValueKind == JsonValueKind.Undefined)
-    {
-        return Results.BadRequest(new { error = "Invalid request body" });
-    }
+    // Read raw JSON to debug what we're actually receiving
+    var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
+    Console.WriteLine($"[BFF] Raw JSON received: {body}");
     
-    // Debug logging to see what the UI is actually sending
-    Console.WriteLine($"[BFF] Received loan application request: {JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true })}");
-    using var http = new HttpClient { BaseAddress = new Uri(orchestratorBaseUrl) };
-    var response = await http.PostAsJsonAsync("/api/loan-applications", request);
-    if (!response.IsSuccessStatusCode)
-    {
-        return Results.StatusCode((int)response.StatusCode);
+    try {
+        // Manually deserialize with options to see what happens
+        var request = JsonSerializer.Deserialize<LoanApplicationRequest>(body, new JsonSerializerOptions 
+        { 
+            PropertyNameCaseInsensitive = true,
+            WriteIndented = true 
+        });
+        
+        Console.WriteLine($"[BFF] Deserialized request: {JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true })}");
+        
+        using var http = new HttpClient { BaseAddress = new Uri(orchestratorBaseUrl) };
+        var response = await http.PostAsJsonAsync("/api/loan-applications", request);
+        if (!response.IsSuccessStatusCode)
+        {
+            return Results.StatusCode((int)response.StatusCode);
+        }
+        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+        return Results.Ok(result);
     }
-    var result = await response.Content.ReadFromJsonAsync<JsonElement>();
-    return Results.Ok(result);
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[BFF] Deserialization error: {ex.Message}");
+        Console.WriteLine($"[BFF] Stack trace: {ex.StackTrace}");
+        return Results.BadRequest($"Invalid request format: {ex.Message}");
+    }
 })
 .WithName("CreateLoanApplication")
 .WithSummary("Create a new loan application")
-.WithDescription("Submits a new loan application with applicant details and requested amount. Returns the application ID for tracking.");
+.WithDescription(@"Submits a new loan application with comprehensive applicant details following BIAN standards.
+
+**Example Request:**
+```json
+{
+  ""ApplicantId"": ""CUST-123456"",
+  ""RequestedAmount"": 50000,
+  ""ApplicantProfile"": {
+    ""FullName"": ""John Smith"",
+    ""DateOfBirth"": ""1985-01-01T00:00:00Z"",
+    ""SSN"": ""8501015009087"",
+    ""Email"": ""john.smith@email.com"",
+    ""PrimaryPhone"": ""+27821234567"",
+    ""PrimaryAddress"": {
+      ""StreetAddress"": ""123 Main Street"",
+      ""City"": ""Cape Town"",
+      ""State"": ""Western Cape"",
+      ""PostalCode"": ""8001"",
+      ""Country"": ""ZAF"",
+      ""AddressType"": ""Residential""
+    },
+    ""Employment"": {
+      ""EmploymentStatus"": ""Permanent"",
+      ""EmployerName"": ""ABC Company"",
+      ""AnnualIncome"": 180000,
+      ""YearsOfEmployment"": 5,
+      ""JobTitle"": ""Software Developer""
+    },
+    ""Finances"": {
+      ""MonthlyIncome"": 15000,
+      ""MonthlyExpenses"": 8000,
+      ""ExistingDebt"": 25000,
+      ""NumberOfDependents"": 2,
+      ""HasBankAccount"": true,
+      ""BankName"": ""Standard Bank""
+    }
+  },
+  ""LoanPreferences"": {
+    ""LoanPurpose"": ""Debt Consolidation"",
+    ""PreferredTermMonths"": 36,
+    ""MaxMonthlyPayment"": 2500,
+    ""ProductType"": ""Personal Loan"",
+    ""AutoPayEnrollment"": false
+  }
+}
+```
+
+**Example Response:**
+```json
+{
+  ""applicationId"": ""12345678-1234-1234-1234-123456789012""
+}
+```
+
+**BIAN Compliance:** This endpoint follows Banking Industry Architecture Network standards with structured data separation for customer profiles, financial assessment, and loan preferences.");
 
 // Forward a document verification signal to the orchestrator.  Returns
 // 202 Accepted on success.
@@ -118,8 +203,8 @@ app.MapPost("/api/loan-applications/{id}/accept-offer", async (string id) =>
 // specification.
 app.MapGet("/api/loan-applications/{id}/events", async (HttpContext context, string id, EventQueue queue) =>
 {
-    context.Response.Headers.Add("Cache-Control", "no-cache");
-    context.Response.Headers.Add("Content-Type", "text/event-stream");
+    context.Response.Headers["Cache-Control"] = "no-cache";
+    context.Response.Headers["Content-Type"] = "text/event-stream";
     var q = queue.GetQueue(id);
     var cancellationToken = context.RequestAborted;
     while (!cancellationToken.IsCancellationRequested)
@@ -158,56 +243,56 @@ app.Run();
 
 // Enhanced request model with comprehensive applicant information following BIAN standards
 record LoanApplicationRequest(
-    string ApplicantId, 
-    decimal RequestedAmount,
-    ApplicantProfile? ApplicantProfile = null,
-    LoanPreferences? LoanPreferences = null
+    [property: JsonPropertyName("ApplicantId")] string? ApplicantId, 
+    [property: JsonPropertyName("RequestedAmount")] decimal RequestedAmount,
+    [property: JsonPropertyName("ApplicantProfile")] ApplicantProfile? ApplicantProfile = null,
+    [property: JsonPropertyName("LoanPreferences")] LoanPreferences? LoanPreferences = null
 );
 
 record ApplicantProfile(
-    string FullName,
-    DateTime DateOfBirth,
-    string SSN,
-    string Email,
-    string PrimaryPhone,
-    AddressInformation PrimaryAddress,
-    EmploymentInformation Employment,
-    FinancialInformation Finances
+    [property: JsonPropertyName("FullName")] string FullName,
+    [property: JsonPropertyName("DateOfBirth")] string DateOfBirth,
+    [property: JsonPropertyName("SSN")] string SSN,
+    [property: JsonPropertyName("Email")] string Email,
+    [property: JsonPropertyName("PrimaryPhone")] string PrimaryPhone,
+    [property: JsonPropertyName("PrimaryAddress")] AddressInformation PrimaryAddress,
+    [property: JsonPropertyName("Employment")] EmploymentInformation Employment,
+    [property: JsonPropertyName("Finances")] FinancialInformation Finances
 );
 
 record AddressInformation(
-    string StreetAddress,
-    string City,
-    string State,
-    string PostalCode,
-    string Country = "USA",
-    string AddressType = "Residential"
+    [property: JsonPropertyName("StreetAddress")] string StreetAddress,
+    [property: JsonPropertyName("City")] string City,
+    [property: JsonPropertyName("State")] string State,
+    [property: JsonPropertyName("PostalCode")] string PostalCode,
+    [property: JsonPropertyName("Country")] string Country = "USA",
+    [property: JsonPropertyName("AddressType")] string AddressType = "Residential"
 );
 
 record EmploymentInformation(
-    string EmploymentStatus,
-    string EmployerName,
-    decimal AnnualIncome,
-    int YearsOfEmployment,
-    string JobTitle,
-    AddressInformation? EmployerAddress = null
+    [property: JsonPropertyName("EmploymentStatus")] string EmploymentStatus,
+    [property: JsonPropertyName("EmployerName")] string EmployerName,
+    [property: JsonPropertyName("AnnualIncome")] decimal AnnualIncome,
+    [property: JsonPropertyName("YearsOfEmployment")] int YearsOfEmployment,
+    [property: JsonPropertyName("JobTitle")] string JobTitle,
+    [property: JsonPropertyName("EmployerAddress")] AddressInformation? EmployerAddress = null
 );
 
 record FinancialInformation(
-    decimal MonthlyIncome,
-    decimal MonthlyExpenses,
-    decimal ExistingDebt,
-    int NumberOfDependents,
-    bool HasBankAccount,
-    string? BankName = null
+    [property: JsonPropertyName("MonthlyIncome")] decimal MonthlyIncome,
+    [property: JsonPropertyName("MonthlyExpenses")] decimal MonthlyExpenses,
+    [property: JsonPropertyName("ExistingDebt")] decimal ExistingDebt,
+    [property: JsonPropertyName("NumberOfDependents")] int NumberOfDependents,
+    [property: JsonPropertyName("HasBankAccount")] bool HasBankAccount,
+    [property: JsonPropertyName("BankName")] string? BankName = null
 );
 
 record LoanPreferences(
-    string LoanPurpose,
-    int PreferredTermMonths,
-    decimal? MaxMonthlyPayment,
-    string ProductType = "Personal Loan",
-    bool AutoPayEnrollment = false
+    [property: JsonPropertyName("LoanPurpose")] string LoanPurpose,
+    [property: JsonPropertyName("PreferredTermMonths")] int PreferredTermMonths,
+    [property: JsonPropertyName("MaxMonthlyPayment")] decimal? MaxMonthlyPayment,
+    [property: JsonPropertyName("ProductType")] string ProductType = "Personal Loan",
+    [property: JsonPropertyName("AutoPayEnrollment")] bool AutoPayEnrollment = false
 );
 
 // Event model representing a workflow milestone.  The Data property is

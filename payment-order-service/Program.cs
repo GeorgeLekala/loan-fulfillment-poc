@@ -86,7 +86,99 @@ app.MapPost("/payment-orders", (PaymentRequest request) =>
 })
 .WithName("ExecutePaymentOrder")
 .WithSummary("Execute a payment order")
-.WithDescription("Processes a payment order to disburse loan funds from the source account to the customer's destination account.");
+.WithDescription(@"Processes a payment order to disburse loan funds from the source account to the customer's destination account.
+
+**Example Request:**
+```json
+{
+  ""SourceAccount"": ""LOAN-FUNDING-001"",
+  ""DestinationAccount"": ""CHK-987654321"",
+  ""Amount"": 50000,
+  ""Instructions"": {
+    ""PaymentMethod"": ""ACH"",
+    ""Priority"": ""Normal"",
+    ""ValueDate"": ""2025-01-27"",
+    ""ProcessingInstructions"": ""Standard same-day ACH""
+  },
+  ""Purpose"": {
+    ""PurposeCode"": ""LoanDisbursement"",
+    ""ReferenceNumber"": ""LA-20250127-1234567890"",
+    ""Description"": ""Personal loan disbursement to customer account""
+  }
+}
+```
+
+**Example Response:**
+```json
+{
+  ""PaymentId"": ""PMT-20250127-XYZ12345"",
+  ""PaymentOrderReference"": ""PO-20250127101530-5678"",
+  ""Transaction"": {
+    ""SourceAccount"": ""LOAN-FUNDING-001"",
+    ""DestinationAccount"": ""CHK-987654321"",
+    ""Amount"": 50000,
+    ""Currency"": ""USD"",
+    ""PaymentMethod"": ""ACH"",
+    ""TransactionType"": ""LoanDisbursement"",
+    ""ReferenceNumber"": ""LA-20250127-1234567890""
+  },
+  ""Execution"": {
+    ""InitiationTime"": ""2025-01-27T10:15:30Z"",
+    ""ExecutionTime"": ""2025-01-27T10:15:33Z"",
+    ""CompletionTime"": ""2025-01-27T10:15:35Z"",
+    ""ProcessingStatus"": ""Completed"",
+    ""ProcessingSteps"": [
+      {
+        ""StepNumber"": 1,
+        ""StepName"": ""Payment Initiated"",
+        ""Timestamp"": ""2025-01-27T10:15:30Z"",
+        ""Status"": ""Completed"",
+        ""Description"": ""Payment order received and validated""
+      },
+      {
+        ""StepNumber"": 2,
+        ""StepName"": ""Fraud Check"",
+        ""Timestamp"": ""2025-01-27T10:15:31Z"",
+        ""Status"": ""Completed"",
+        ""Description"": ""Fraud screening passed""
+      }
+    ]
+  },
+  ""Compliance"": {
+    ""AMLScreeningPassed"": true,
+    ""OFACScreeningPassed"": true,
+    ""FraudCheckPassed"": true,
+    ""Checks"": [
+      {
+        ""CheckType"": ""AML"",
+        ""Result"": ""Pass"",
+        ""Timestamp"": ""2025-01-27T10:15:31Z""
+      }
+    ]
+  },
+  ""Status"": {
+    ""CurrentStatus"": ""Completed"",
+    ""StatusTime"": ""2025-01-27T10:15:35Z"",
+    ""StatusReason"": ""Payment processed successfully""
+  },
+  ""Settlement"": {
+    ""SettlementMethod"": ""FedWire"",
+    ""SettlementDate"": ""2025-01-28"",
+    ""ClearingSystemReference"": ""FW20250127654321"",
+    ""SettlementAmount"": 50000,
+    ""CorrespondentBank"": ""Federal Reserve Bank""
+  }
+}
+```
+
+**Payment Processing:**
+- Validates payment instructions and account details
+- Performs AML/OFAC/fraud screening
+- Executes fund transfer via ACH or wire
+- Provides real-time status updates
+- Handles settlement and clearing processes
+
+**Returns:** Complete payment execution details with compliance verification and settlement information.");
 
 app.Run();
 

@@ -111,7 +111,103 @@ app.MapPost("/consumer-loans", (LoanAccountRequest request) =>
 })
 .WithName("CreateLoanAccount")
 .WithSummary("Create a consumer loan account")
-.WithDescription("Creates a new loan account in the core banking system based on an approved sales agreement.");
+.WithDescription(@"Creates a new loan account in the core banking system based on an approved sales agreement.
+
+**Example Request:**
+```json
+{
+  ""AgreementId"": ""SA-20250127-XYZ789"",
+  ""Instructions"": {
+    ""FundingMethod"": ""ACH"",
+    ""DisbursementAccount"": ""CHK-987654321"",
+    ""PreferredContactMethod"": ""Email"",
+    ""TimeZone"": ""America/New_York""
+  },
+  ""Preferences"": {
+    ""AutoPayEnrollment"": true,
+    ""AutoPayAccount"": ""CHK-123456789"",
+    ""StatementDeliveryMethod"": ""Electronic"",
+    ""StatementDay"": 1,
+    ""PaperlessOptIn"": true
+  }
+}
+```
+
+**Example Response:**
+```json
+{
+  ""LoanAccountId"": ""LA-20250127-1234567890"",
+  ""AgreementId"": ""SA-20250127-XYZ789"",
+  ""CustomerReference"": ""CUST-654321"",
+  ""Details"": {
+    ""ProductType"": ""Personal Loan"",
+    ""OriginalPrincipal"": 50000,
+    ""CurrentBalance"": 50000,
+    ""InterestRate"": 0.065,
+    ""OriginalTermMonths"": 24,
+    ""RemainingTermMonths"": 24,
+    ""FirstPaymentDate"": ""2025-03-15T00:00:00Z"",
+    ""MaturityDate"": ""2027-03-15T00:00:00Z"",
+    ""InterestCalculationMethod"": ""Daily Simple Interest""
+  },
+  ""Schedule"": {
+    ""MonthlyPayment"": 2134.89,
+    ""PrincipalPortion"": 1968.22,
+    ""InterestPortion"": 166.67,
+    ""PaymentDay"": 15,
+    ""PaymentFrequency"": ""Monthly"",
+    ""UpcomingPayments"": [
+      {
+        ""PaymentNumber"": 1,
+        ""DueDate"": ""2025-03-15T00:00:00Z"",
+        ""PaymentAmount"": 2134.89,
+        ""PrincipalAmount"": 1968.22,
+        ""InterestAmount"": 166.67,
+        ""RemainingBalance"": 48031.78
+      }
+    ]
+  },
+  ""Configuration"": {
+    ""AutoPayEnabled"": true,
+    ""AutoPayAccount"": ""CHK-123456789"",
+    ""StatementDelivery"": ""Electronic"",
+    ""StatementDay"": 1,
+    ""PaperlessEnrolled"": true,
+    ""Notifications"": {
+      ""PaymentReminders"": true,
+      ""PaymentConfirmations"": true,
+      ""StatementAvailable"": true,
+      ""RateChanges"": true,
+      ""PreferredChannel"": ""Email""
+    }
+  },
+  ""ServiceLevels"": {
+    ""CustomerSegment"": ""Prime"",
+    ""RelationshipManager"": ""Digital Service Team"",
+    ""SupportLevel"": ""Standard"",
+    ""AvailableServices"": [
+      ""Online Account Management"",
+      ""Mobile App Access"",
+      ""24/7 Customer Support""
+    ]
+  },
+  ""Status"": {
+    ""CurrentStatus"": ""Active"",
+    ""StatusDate"": ""2025-01-27T10:00:00Z"",
+    ""StatusReason"": ""Account opened and funded"",
+    ""GoodStanding"": true
+  }
+}
+```
+
+**Account Creation Process:**
+- Creates core banking loan account
+- Establishes payment schedule with amortization
+- Sets up customer preferences and notifications
+- Configures automatic payment enrollment
+- Assigns appropriate service levels
+
+**Returns:** Complete loan account details with payment schedule and configuration.");
 
 app.Run();
 

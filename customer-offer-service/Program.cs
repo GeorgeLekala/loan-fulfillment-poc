@@ -106,7 +106,75 @@ app.MapPost("/customer-offers", (OfferRequest request) =>
 })
 .WithName("CreateOffer")
 .WithSummary("Create a loan offer")
-.WithDescription("Generates a personalized loan offer with calculated monthly payments based on the applicant's eligible amount.");
+.WithDescription(@"Generates a personalized loan offer with calculated monthly payments based on the applicant's eligible amount.
+
+**Example Request:**
+```json
+{
+  ""ApplicantId"": ""CUST-123456"",
+  ""Amount"": 50000,
+  ""Preferences"": {
+    ""PreferredTermMonths"": 24,
+    ""RateType"": ""Fixed"",
+    ""AutoPayEnrollment"": true,
+    ""ProductType"": ""Personal Loan""
+  },
+  ""EligibilityData"": {
+    ""CreditScore"": 745,
+    ""MaxAmount"": 60000,
+    ""RiskGrade"": ""Good""
+  }
+}
+```
+
+**Example Response:**
+```json
+{
+  ""OfferId"": ""LO-20250127-ABC12345"",
+  ""ApplicantId"": ""CUST-123456"",
+  ""Amount"": 50000,
+  ""Terms"": {
+    ""TermMonths"": 24,
+    ""MonthlyPayment"": 2134.89,
+    ""FirstPaymentDate"": ""2025-03-15T00:00:00Z"",
+    ""TotalOfPayments"": 51237.36,
+    ""RepaymentFrequency"": ""Monthly""
+  },
+  ""Pricing"": {
+    ""InterestRate"": 0.065,
+    ""APR"": 0.070,
+    ""RateType"": ""Fixed"",
+    ""Fees"": [
+      {
+        ""FeeType"": ""Origination"",
+        ""Amount"": 500.00,
+        ""Description"": ""One-time loan origination fee""
+      }
+    ],
+    ""PromotionalRate"": 0.045,
+    ""PromotionalPeriodMonths"": 6
+  },
+  ""Conditions"": {
+    ""RequiredDocuments"": [""Proof of Income"", ""Bank Statements""],
+    ""Stipulations"": [""Maintain employment during loan term""],
+    ""IncomeVerificationRequired"": true,
+    ""CollateralRequired"": false
+  },
+  ""Disclosures"": {
+    ""TruthInLendingAct"": ""APR and payment terms disclosed per Regulation Z"",
+    ""DisclosureDate"": ""2025-01-27T10:00:00Z""
+  },
+  ""ExpirationDate"": ""2025-02-26T10:00:00Z""
+}
+```
+
+**Offer Calculation:**
+- Interest rate based on credit score (620-850 range)
+- APR includes all fees and charges
+- Monthly payment calculated using standard amortization
+- Promotional rates available for qualified applicants
+
+**Returns:** Complete loan offer with terms, pricing, and regulatory disclosures.");
 
 // Retrieve an existing offer by its id.  This endpoint is optional but
 // useful for debugging.  If the offer does not exist a 404 is
@@ -115,7 +183,36 @@ app.MapGet("/customer-offers/{id}", (string id) =>
     offers.TryGetValue(id, out var offer) ? Results.Ok(offer) : Results.NotFound())
 .WithName("GetOffer")
 .WithSummary("Get loan offer by ID")
-.WithDescription("Retrieves an existing loan offer by its unique identifier.");
+.WithDescription(@"Retrieves an existing loan offer by its unique identifier.
+
+**Example Request:**
+```
+GET /customer-offers/LO-20250127-ABC12345
+```
+
+**Example Response (Success):**
+```json
+{
+  ""OfferId"": ""LO-20250127-ABC12345"",
+  ""ApplicantId"": ""CUST-123456"",
+  ""Amount"": 50000,
+  ""Terms"": {
+    ""TermMonths"": 24,
+    ""MonthlyPayment"": 2134.89
+  },
+  ""ExpirationDate"": ""2025-02-26T10:00:00Z""
+}
+```
+
+**Example Response (Not Found):**
+```json
+{
+  ""error"": ""Offer not found"",
+  ""offerId"": ""LO-20250127-INVALID""
+}
+```
+
+**Returns:** Complete offer details if found, 404 if offer ID doesn't exist.");
 
 app.Run();
 

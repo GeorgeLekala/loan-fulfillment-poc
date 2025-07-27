@@ -87,7 +87,88 @@ app.MapPost("/eligibility-assessments", (EligibilityRequest request) =>
 })
 .WithName("AssessEligibility")
 .WithSummary("Assess loan eligibility")
-.WithDescription("Evaluates whether an applicant is eligible for a loan and determines the maximum amount they can borrow.");
+.WithDescription(@"Evaluates whether an applicant is eligible for a loan and determines the maximum amount they can borrow.
+
+**Example Request:**
+```json
+{
+  ""ApplicantId"": ""CUST-123456"",
+  ""RequestedAmount"": 50000,
+  ""ApplicantProfile"": {
+    ""CustomerReference"": ""CUST-123456"",
+    ""FullName"": ""John Smith"",
+    ""DateOfBirth"": ""1985-01-15"",
+    ""EmploymentStatus"": ""Employed"",
+    ""AnnualIncome"": 180000,
+    ""EmployerName"": ""Tech Solutions Ltd"",
+    ""YearsOfEmployment"": 3,
+    ""ContactInfo"": {
+      ""Email"": ""john.smith@email.com"",
+      ""PrimaryPhone"": ""+27821234567""
+    },
+    ""Address"": {
+      ""StreetAddress"": ""123 Main Street"",
+      ""City"": ""Johannesburg"",
+      ""State"": ""Gauteng"",
+      ""PostalCode"": ""2000"",
+      ""Country"": ""ZAR""
+    },
+    ""Identification"": {
+      ""SSN"": ""8501015009087""
+    }
+  },
+  ""LoanDetails"": {
+    ""LoanPurpose"": ""Debt Consolidation"",
+    ""RequestedTermMonths"": 24,
+    ""DownPayment"": 0,
+    ""ProductType"": ""Personal Loan""
+  }
+}
+```
+
+**Example Response:**
+```json
+{
+  ""ApplicantId"": ""CUST-123456"",
+  ""EligibilityReference"": ""ELG-20250127-ABC12345"",
+  ""Eligible"": true,
+  ""MaxAmount"": 60000.00,
+  ""Assessment"": {
+    ""CreditScore"": 745,
+    ""CreditGrade"": ""Good"",
+    ""DebtToIncomeRatio"": 0.32,
+    ""LoanToValueRatio"": 0.8,
+    ""CriteriaMet"": [
+      {
+        ""CriteriaType"": ""MinimumIncome"",
+        ""Met"": true,
+        ""Description"": ""Annual income must be at least $30,000"",
+        ""ThresholdValue"": 30000,
+        ""ActualValue"": 180000
+      }
+    ],
+    ""RiskFactors"": [],
+    ""Compliance"": {
+      ""KYCCompliant"": true,
+      ""AMLCompliant"": true,
+      ""RegulationCompliant"": true,
+      ""LastKYCUpdate"": ""2025-01-15T10:00:00Z"",
+      ""ComplianceNotes"": [""Customer verified through automated systems""]
+    }
+  },
+  ""AssessmentDate"": ""2025-01-27T10:00:00Z"",
+  ""Status"": ""Completed""
+}
+```
+
+**Assessment Criteria:**
+- Minimum annual income: R360,000 (R30,000/month)
+- Credit score: Minimum 620
+- Debt-to-income ratio: Maximum 43%
+- Employment status: Must be employed
+- Maximum loan amount: R1,200,000
+
+**Returns:** Comprehensive eligibility assessment with risk factors and compliance checks.");
 
 app.Run();
 

@@ -20,7 +20,31 @@ builder.Services.AddSwaggerGen(c =>
     { 
         Title = "Loan Fulfillment Orchestrator API", 
         Version = "v1",
-        Description = "Temporal workflow orchestrator for managing loan application lifecycles and coordinating microservices."
+        Description = @"**Temporal Workflow Orchestrator for Loan Processing**
+
+This service coordinates the entire loan fulfillment process using Temporal workflows. It manages:
+
+- **Workflow Orchestration**: 6-stage loan processing pipeline
+- **Service Coordination**: Integrates with 5 specialized microservices
+- **Signal Management**: Handles document verification and offer acceptance
+- **Event Publishing**: Real-time status updates to BFF service
+- **BIAN Compliance**: Banking Industry Architecture Network standards
+
+**6-Stage Workflow Process:**
+1. **Eligibility Assessment** → Credit evaluation and risk scoring
+2. **Offer Generation** → Personalized loan terms and pricing  
+3. **Document Verification** → Customer document submission (manual gate)
+4. **Agreement Creation** → Sales agreement and compliance documentation
+5. **Account Creation** → Core banking loan account setup
+6. **Fund Disbursement** → Payment processing and fund transfer
+
+**Temporal Integration:**
+- **Task Queue**: `LoanTaskQueue`
+- **Workflow ID**: Application ID (UUID)
+- **Activities**: Calls to domain microservices
+- **Signals**: `DocumentVerified()`, `OfferAccepted()`
+
+**Base URL:** `http://localhost:5002`"
     });
 });
 
@@ -81,27 +105,35 @@ app.UseCors("AllowUI");
 // workflow.  The orchestrator does not return until the workflow is
 // started successfully.  The client receives the application id in
 // the response body.
+
 app.MapPost("/api/loan-applications", async (JsonElement input, TemporalClient client) =>
 {
     var appId = Guid.NewGuid().ToString();
+
+    Console.WriteLine($"[ORCH] Deserialized request: {JsonSerializer.Serialize(input, new JsonSerializerOptions { WriteIndented = true })}");
+
+    // Map the BIAN-compliant request to the orchestrator model
+    var applicantProfile = input.GetProperty("ApplicantProfile");
+    var employment = applicantProfile.GetProperty("Employment");
+    var finances = applicantProfile.GetProperty("Finances");
+    var loanPreferences = input.GetProperty("LoanPreferences");
     
-    // Map the NCR-compliant simplified request to the orchestrator model
     var loanApplicationData = new LoanApplicationData
     {
-        ApplicantName = input.GetProperty("FullName").GetString() ?? "",
-        SSN = input.GetProperty("IdNumber").GetString() ?? "",
-        Email = input.GetProperty("EmailAddress").GetString() ?? "",
-        PhoneNumber = input.GetProperty("MobileNumber").GetString() ?? "",
-        AnnualIncome = input.GetProperty("MonthlyIncome").GetDecimal() * 12,
-        EmploymentStatus = input.GetProperty("EmploymentType").GetString() ?? "",
+        ApplicantName = applicantProfile.GetProperty("FullName").GetString() ?? "",
+        SSN = applicantProfile.GetProperty("SSN").GetString() ?? "",
+        Email = applicantProfile.GetProperty("Email").GetString() ?? "",
+        PhoneNumber = applicantProfile.GetProperty("PrimaryPhone").GetString() ?? "",
+        AnnualIncome = employment.GetProperty("AnnualIncome").GetDecimal(),
+        EmploymentStatus = employment.GetProperty("EmploymentStatus").GetString() ?? "",
         RequestedAmount = input.GetProperty("RequestedAmount").GetDecimal(),
-        LoanPurpose = "Personal Loan", // Default purpose for NCR compliance
-        PreferredTermMonths = 60, // Default term for consumer loans
-        MaxMonthlyPayment = input.TryGetProperty("MaxMonthlyPayment", out var maxPayment) && 
+        LoanPurpose = loanPreferences.GetProperty("LoanPurpose").GetString() ?? "Personal Loan",
+        PreferredTermMonths = loanPreferences.GetProperty("PreferredTermMonths").GetInt32(),
+        MaxMonthlyPayment = loanPreferences.TryGetProperty("MaxMonthlyPayment", out var maxPayment) && 
                           maxPayment.ValueKind != JsonValueKind.Null ? 
                           maxPayment.GetDecimal() : null,
-        ProductType = "Personal Loan",
-        AutoPayEnrollment = false
+        ProductType = loanPreferences.GetProperty("ProductType").GetString() ?? "Personal Loan",
+        AutoPayEnrollment = loanPreferences.GetProperty("AutoPayEnrollment").GetBoolean()
     };
     
     Console.WriteLine($"[ORCHESTRATOR] Starting workflow for applicant: {loanApplicationData.ApplicantName}, Amount: {loanApplicationData.RequestedAmount}");
@@ -112,7 +144,38 @@ app.MapPost("/api/loan-applications", async (JsonElement input, TemporalClient c
 })
 .WithName("StartLoanWorkflow")
 .WithSummary("Start a new loan application workflow")
-.WithDescription("Initiates a new Temporal workflow for processing a loan application with the provided applicant data.");
+.WithDescription(@"Initiates a new Temporal workflow for processing a loan application with the provided applicant data.
+
+**Example Request:**
+```json
+{
+  ""FullName"": ""John Smith"",
+  ""IdNumber"": ""8501015009087"",
+  ""EmailAddress"": ""john.smith@email.com"",
+  ""MobileNumber"": ""+27821234567"",
+  ""MonthlyIncome"": 15000,
+  ""EmploymentType"": ""Permanent"",
+  ""RequestedAmount"": 50000,
+  ""MaxMonthlyPayment"": 2500
+}
+```
+
+**Example Response:**
+```json
+{
+  ""applicationId"": ""12345678-1234-1234-1234-123456789012""
+}
+```
+
+**Workflow Process:**
+1. **Eligibility Assessment**: Evaluates creditworthiness and loan capacity
+2. **Offer Generation**: Creates personalized loan offer with terms
+3. **Document Verification**: Waits for customer document submission
+4. **Agreement Creation**: Generates sales agreement upon offer acceptance
+5. **Account Creation**: Sets up loan account in core banking system
+6. **Fund Disbursement**: Transfers approved funds to customer account
+
+**Returns:** Unique application ID for tracking the workflow through completion.");
 
 // Endpoint to signal that documents have been verified for a given
 // application.  Sends a signal by name to the running workflow.  If
@@ -126,7 +189,19 @@ app.MapPost("/api/loan-applications/{id}/verify-documents", async (string id, Te
 })
 .WithName("SignalDocumentVerification")
 .WithSummary("Signal document verification")
-.WithDescription("Sends a signal to the workflow indicating that the applicant's documents have been verified.");
+.WithDescription(@"Sends a signal to the workflow indicating that the applicant's documents have been verified.
+
+**Example Request:**
+```
+POST /api/loan-applications/12345678-1234-1234-1234-123456789012/verify-documents
+```
+
+**Example Response:**
+- **202 Accepted**: Signal sent successfully, workflow will proceed
+- **404 Not Found**: Workflow not found or already completed
+- **500 Internal Server Error**: Temporal service error
+
+**Process:** This signal unblocks the workflow from the document verification stage, allowing it to proceed to agreement creation and fund disbursement.");
 
 // Endpoint to signal that the applicant has accepted the offer.  This
 // unblocks the workflow from waiting on the offer acceptance stage.
@@ -138,6 +213,18 @@ app.MapPost("/api/loan-applications/{id}/accept-offer", async (string id, Tempor
 })
 .WithName("SignalOfferAcceptance")
 .WithSummary("Signal offer acceptance")
-.WithDescription("Sends a signal to the workflow indicating that the applicant has accepted the loan offer.");
+.WithDescription(@"Sends a signal to the workflow indicating that the applicant has accepted the loan offer.
+
+**Example Request:**
+```
+POST /api/loan-applications/12345678-1234-1234-1234-123456789012/accept-offer
+```
+
+**Example Response:**
+- **202 Accepted**: Signal sent successfully, workflow will proceed to next stage
+- **404 Not Found**: Workflow not found or already completed  
+- **500 Internal Server Error**: Temporal service error
+
+**Process:** This signal transitions the workflow from the offer review stage to agreement creation, account setup, and fund disbursement stages.");
 
 app.Run();

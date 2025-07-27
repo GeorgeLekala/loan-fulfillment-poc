@@ -99,7 +99,84 @@ app.MapPost("/sales-product-agreements", (AgreementRequest request) =>
 })
 .WithName("CreateSalesAgreement")
 .WithSummary("Create a sales product agreement")
-.WithDescription("Creates a formal sales agreement based on an accepted loan offer, establishing the contractual terms.");
+.WithDescription(@"Creates a formal sales agreement based on an accepted loan offer, establishing the contractual terms.
+
+**Example Request:**
+```json
+{
+  ""OfferId"": ""LO-20250127-ABC12345"",
+  ""Instructions"": {
+    ""PreferredContactMethod"": ""Email"",
+    ""DeliveryMethod"": ""Electronic"",
+    ""SignatureMethod"": ""Electronic"",
+    ""NotificationPreferences"": {
+      ""PaymentReminders"": true,
+      ""StatementNotifications"": true,
+      ""RateChangeNotices"": true
+    }
+  },
+  ""Preferences"": {
+    ""AutoPayEnrollment"": true,
+    ""AutoPayAccount"": ""CHK-123456789"",
+    ""StatementDeliveryMethod"": ""Electronic"",
+    ""PaperlessOptIn"": true
+  }
+}
+```
+
+**Example Response:**
+```json
+{
+  ""AgreementId"": ""SA-20250127-XYZ789"",
+  ""OfferId"": ""LO-20250127-ABC12345"",
+  ""CustomerReference"": ""CUST-654321"",
+  ""Details"": {
+    ""ProductType"": ""Personal Loan"",
+    ""PrincipalAmount"": 50000,
+    ""InterestRate"": 0.065,
+    ""TermMonths"": 24,
+    ""MonthlyPayment"": 2134.89,
+    ""FirstPaymentDate"": ""2025-03-15T00:00:00Z"",
+    ""MaturityDate"": ""2027-03-15T00:00:00Z"",
+    ""LoanPurpose"": ""Debt Consolidation""
+  },
+  ""Terms"": {
+    ""TermsAndConditions"": [
+      ""Borrower agrees to repay according to payment schedule"",
+      ""Interest accrues daily on outstanding balance""
+    ],
+    ""Default"": {
+      ""GracePeriodDays"": 10,
+      ""LateFeePercentage"": 0.05,
+      ""DefaultInterestRate"": ""Prime + 5%""
+    },
+    ""Prepayment"": {
+      ""PrepaymentAllowed"": true,
+      ""PrepaymentPenalty"": null,
+      ""PrepaymentConditions"": ""No penalty after 12 months""
+    }
+  },
+  ""Compliance"": {
+    ""TruthInLendingDisclosure"": ""TIL disclosure per Regulation Z"",
+    ""RightOfRescission"": ""3-day rescission period applicable"",
+    ""DisclosureDeliveryDate"": ""2025-01-27T10:00:00Z"",
+    ""CreditReportingAuthorization"": true
+  },
+  ""Status"": {
+    ""CurrentStatus"": ""Executed"",
+    ""StatusDate"": ""2025-01-27T10:00:00Z"",
+    ""StatusReason"": ""Customer acceptance completed""
+  }
+}
+```
+
+**Agreement Process:**
+- Creates legally binding loan contract
+- Includes all regulatory disclosures (Truth in Lending Act)
+- Establishes repayment terms and default provisions
+- Records customer preferences for account management
+
+**Returns:** Complete agreement with all terms, conditions, and compliance documentation.");
 
 app.Run();
 
