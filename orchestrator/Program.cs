@@ -85,24 +85,23 @@ app.MapPost("/api/loan-applications", async (JsonElement input, TemporalClient c
 {
     var appId = Guid.NewGuid().ToString();
     
-    // Map the comprehensive BFF request to the simpler orchestrator model
+    // Map the NCR-compliant simplified request to the orchestrator model
     var loanApplicationData = new LoanApplicationData
     {
-        ApplicantName = input.GetProperty("applicantProfile").GetProperty("fullName").GetString() ?? "",
-        SSN = input.GetProperty("applicantProfile").GetProperty("ssn").GetString() ?? "",
-        Email = input.GetProperty("applicantProfile").GetProperty("email").GetString() ?? "",
-        PhoneNumber = input.GetProperty("applicantProfile").GetProperty("primaryPhone").GetString() ?? "",
-        AnnualIncome = input.GetProperty("applicantProfile").GetProperty("employment").GetProperty("annualIncome").GetDecimal(),
-        EmploymentStatus = input.GetProperty("applicantProfile").GetProperty("employment").GetProperty("employmentStatus").GetString() ?? "",
-        RequestedAmount = input.GetProperty("requestedAmount").GetDecimal(),
-        LoanPurpose = input.GetProperty("loanPreferences").GetProperty("loanPurpose").GetString() ?? "",
-        PreferredTermMonths = input.GetProperty("loanPreferences").GetProperty("preferredTermMonths").GetInt32(),
-        MaxMonthlyPayment = input.TryGetProperty("loanPreferences", out var loanPrefs) && 
-                          loanPrefs.TryGetProperty("maxMonthlyPayment", out var maxPayment) && 
+        ApplicantName = input.GetProperty("FullName").GetString() ?? "",
+        SSN = input.GetProperty("IdNumber").GetString() ?? "",
+        Email = input.GetProperty("EmailAddress").GetString() ?? "",
+        PhoneNumber = input.GetProperty("MobileNumber").GetString() ?? "",
+        AnnualIncome = input.GetProperty("MonthlyIncome").GetDecimal() * 12,
+        EmploymentStatus = input.GetProperty("EmploymentType").GetString() ?? "",
+        RequestedAmount = input.GetProperty("RequestedAmount").GetDecimal(),
+        LoanPurpose = "Personal Loan", // Default purpose for NCR compliance
+        PreferredTermMonths = 60, // Default term for consumer loans
+        MaxMonthlyPayment = input.TryGetProperty("MaxMonthlyPayment", out var maxPayment) && 
                           maxPayment.ValueKind != JsonValueKind.Null ? 
                           maxPayment.GetDecimal() : null,
-        ProductType = input.GetProperty("loanPreferences").GetProperty("productType").GetString(),
-        AutoPayEnrollment = input.GetProperty("loanPreferences").GetProperty("autoPayEnrollment").GetBoolean()
+        ProductType = "Personal Loan",
+        AutoPayEnrollment = false
     };
     
     Console.WriteLine($"[ORCHESTRATOR] Starting workflow for applicant: {loanApplicationData.ApplicantName}, Amount: {loanApplicationData.RequestedAmount}");

@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace LoanFulfilment.Orchestrator
 {
@@ -113,6 +114,12 @@ namespace LoanFulfilment.Orchestrator
     {
         public string LoanAccountId { get; init; } = default!;
         public string AgreementId { get; init; } = default!;
+        public string CustomerReference { get; init; } = default!;
+        public AccountDetails Details { get; init; } = default!;
+        public LoanSchedule Schedule { get; init; } = default!;
+        public AccountConfiguration Configuration { get; init; } = default!;
+        public ServiceLevels ServiceLevels { get; init; } = default!;
+        public AccountStatus Status { get; init; } = default!;
         public DateTime CreatedAt { get; init; }
     }
 
@@ -192,6 +199,75 @@ namespace LoanFulfilment.Orchestrator
         string CorrespondentBank
     );
 
+    // Loan Account Related Models
+    public record AccountDetails(
+        string ProductType,
+        decimal OriginalPrincipal,
+        decimal CurrentBalance,
+        decimal InterestRate,
+        int OriginalTermMonths,
+        int RemainingTermMonths,
+        DateTime FirstPaymentDate,
+        DateTime MaturityDate,
+        string InterestCalculationMethod
+    );
+
+    public record LoanSchedule(
+        decimal MonthlyPayment,
+        decimal PrincipalPortion,
+        decimal InterestPortion,
+        int PaymentDay,
+        string PaymentFrequency,
+        List<PaymentScheduleItem> UpcomingPayments
+    );
+
+    public record PaymentScheduleItem(
+        int PaymentNumber,
+        DateTime DueDate,
+        decimal PaymentAmount,
+        decimal PrincipalAmount,
+        decimal InterestAmount,
+        decimal RemainingBalance
+    );
+
+    public record AccountConfiguration(
+        bool AutoPayEnabled,
+        string? AutoPayAccount,
+        string StatementDelivery,
+        int StatementDay,
+        bool PaperlessEnrolled,
+        NotificationPreferences Notifications
+    );
+
+    public record NotificationPreferences(
+        bool PaymentReminders,
+        bool PaymentConfirmations,
+        bool StatementAvailable,
+        bool RateChanges,
+        string PreferredChannel
+    );
+
+    public record ServiceLevels(
+        string CustomerSegment,
+        string RelationshipManager,
+        string SupportLevel,
+        List<string> AvailableServices
+    );
+
+    public record AccountStatus(
+        string CurrentStatus,
+        DateTime StatusDate,
+        string? StatusReason,
+        bool GoodStanding,
+        List<AccountStatusHistory> History
+    );
+
+    public record AccountStatusHistory(
+        string Status,
+        DateTime EffectiveDate,
+        string Reason,
+        string UpdatedBy
+    );
     public record WorkflowEvent
     {
         public string Stage { get; init; } = default!;

@@ -24,15 +24,15 @@ const LoanOfferCard = ({ offer, onVerifyDocuments, onAcceptOffer, loading }) => 
   console.log('LoanOfferCard extracted offerData:', JSON.stringify(offerData, null, 2));
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-ZA', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'ZAR'
     }).format(amount || 0);
   };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'TBD';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-ZA', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -42,9 +42,9 @@ const LoanOfferCard = ({ offer, onVerifyDocuments, onAcceptOffer, loading }) => 
   return (
     <div className="offer-card fade-in">
       <div className="offer-header">
-        <h2>🎉 Loan Offer Approved!</h2>
+        <h2>🎉 Personal Loan Approved!</h2>
         <div className="offer-amount">{formatCurrency(offerData.amount)}</div>
-        <p>Your personalized loan offer is ready for review</p>
+        <p>Your personalised loan offer is ready for review</p>
       </div>
 
       <div className="offer-details">
@@ -131,9 +131,11 @@ const LoanOfferCard = ({ offer, onVerifyDocuments, onAcceptOffer, loading }) => 
         color: 'var(--text-secondary)'
       }}>
         <h5 style={{ marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Important Information</h5>
-        <p>• This offer is subject to final underwriting approval</p>
-        <p>• Interest rate is based on creditworthiness and may vary</p>
-        <p>• You have the right to cancel within 3 business days</p>
+        <p>• This offer is subject to final credit assessment and approval</p>
+        <p>• Interest rate is based on your credit profile and may vary</p>
+        <p>• You have the right to cancel within 5 business days (cooling-off period)</p>
+        <p>• Regulated by the National Credit Regulator (NCR)</p>
+        <p>• Credit life insurance may be available at additional cost</p>
         {(offerData.disclosures.TruthInLendingAct || offerData.disclosures.truthInLendingAct) && (
           <p>• {offerData.disclosures.TruthInLendingAct || offerData.disclosures.truthInLendingAct}</p>
         )}
@@ -146,7 +148,7 @@ const LoanOfferCard = ({ offer, onVerifyDocuments, onAcceptOffer, loading }) => 
           disabled={loading}
         >
           {loading ? <span className="loading-spinner"></span> : null}
-          📄 Verify Documents
+          📄 Submit Documentation
         </button>
         <button 
           className="btn btn-success"
@@ -154,7 +156,7 @@ const LoanOfferCard = ({ offer, onVerifyDocuments, onAcceptOffer, loading }) => 
           disabled={loading}
         >
           {loading ? <span className="loading-spinner"></span> : null}
-          ✅ Accept Offer
+          ✅ Accept Loan Offer
         </button>
       </div>
     </div>

@@ -9,42 +9,7 @@ const PersonalInfoForm = ({ formData, setFormData }) => {
       </h3>
       <div className="form-grid">
         <div className="form-group">
-          <label className="form-label">Full Legal Name *</label>
-          <input
-            type="text"
-            className="form-input"
-            value={formData.applicantProfile?.fullName || ''}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              applicantProfile: {
-                ...prev.applicantProfile,
-                fullName: e.target.value
-              }
-            }))}
-            placeholder="Enter your full legal name"
-            required
-          />
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Date of Birth *</label>
-          <input
-            type="date"
-            className="form-input"
-            value={formData.applicantProfile?.dateOfBirth || ''}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              applicantProfile: {
-                ...prev.applicantProfile,
-                dateOfBirth: e.target.value
-              }
-            }))}
-            required
-          />
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Social Security Number *</label>
+          <label className="form-label">South African ID Number *</label>
           <input
             type="text"
             className="form-input"
@@ -53,35 +18,20 @@ const PersonalInfoForm = ({ formData, setFormData }) => {
               ...prev,
               applicantProfile: {
                 ...prev.applicantProfile,
-                ssn: e.target.value
+                ssn: e.target.value,
+                fullName: e.target.value ? 'Auto-filled from ID' : '',
+                dateOfBirth: e.target.value ? 'Auto-filled from ID' : ''
               }
             }))}
-            placeholder="000-00-0000"
-            maxLength="11"
+            placeholder="0000000000000"
+            maxLength="13"
             required
           />
+          <small className="form-hint">We'll use this to check your credit profile</small>
         </div>
         
         <div className="form-group">
-          <label className="form-label">Email Address *</label>
-          <input
-            type="email"
-            className="form-input"
-            value={formData.applicantProfile?.email || ''}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              applicantProfile: {
-                ...prev.applicantProfile,
-                email: e.target.value
-              }
-            }))}
-            placeholder="your.email@example.com"
-            required
-          />
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Primary Phone *</label>
+          <label className="form-label">Mobile Number *</label>
           <input
             type="tel"
             className="form-input"
@@ -93,7 +43,7 @@ const PersonalInfoForm = ({ formData, setFormData }) => {
                 primaryPhone: e.target.value
               }
             }))}
-            placeholder="(555) 123-4567"
+            placeholder="071 234 5678"
             required
           />
         </div>

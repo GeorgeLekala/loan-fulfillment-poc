@@ -4,12 +4,12 @@ const FinancialForm = ({ formData, setFormData }) => {
   return (
     <div className="form-section">
       <h3 className="section-title">
-        <span className="section-icon">4</span>
+        <span className="section-icon">3</span>
         Financial Information
       </h3>
       <div className="form-grid">
         <div className="form-group">
-          <label className="form-label">Monthly Expenses *</label>
+          <label className="form-label">Monthly Expenses (ZAR) *</label>
           <input
             type="number"
             className="form-input"
@@ -24,77 +24,12 @@ const FinancialForm = ({ formData, setFormData }) => {
                 }
               }
             }))}
-            placeholder="3500"
-            min="0"
-            step="100"
-            required
-          />
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Existing Debt *</label>
-          <input
-            type="number"
-            className="form-input"
-            value={formData.applicantProfile?.finances?.existingDebt || ''}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              applicantProfile: {
-                ...prev.applicantProfile,
-                finances: {
-                  ...prev.applicantProfile?.finances,
-                  existingDebt: parseFloat(e.target.value) || 0
-                }
-              }
-            }))}
-            placeholder="15000"
+            placeholder="12000"
             min="0"
             step="500"
             required
           />
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Number of Dependents</label>
-          <input
-            type="number"
-            className="form-input"
-            value={formData.applicantProfile?.finances?.numberOfDependents || ''}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              applicantProfile: {
-                ...prev.applicantProfile,
-                finances: {
-                  ...prev.applicantProfile?.finances,
-                  numberOfDependents: parseInt(e.target.value) || 0
-                }
-              }
-            }))}
-            placeholder="2"
-            min="0"
-            max="10"
-          />
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Primary Bank</label>
-          <input
-            type="text"
-            className="form-input"
-            value={formData.applicantProfile?.finances?.bankName || ''}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              applicantProfile: {
-                ...prev.applicantProfile,
-                finances: {
-                  ...prev.applicantProfile?.finances,
-                  bankName: e.target.value,
-                  hasBankAccount: e.target.value.length > 0
-                }
-              }
-            }))}
-            placeholder="Bank of America"
-          />
+          <small className="form-hint">Include rent, groceries, transport, debt payments</small>
         </div>
       </div>
     </div>

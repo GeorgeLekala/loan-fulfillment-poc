@@ -61,17 +61,20 @@ if (app.Environment.IsDevelopment())
 var orchestratorBaseUrl = Environment.GetEnvironmentVariable("ORCHESTRATOR_URL") ?? "http://orchestrator";
 
 // Start a new loan application.  The request body contains the
-// applicant id and requested amount.  The BFF forwards this to the
+// comprehensive applicant data.  The BFF forwards this to the
 // orchestrator and returns the generated application id to the
 // frontend.  Any errors from the orchestrator (for example if
 // Temporal is unavailable) propagate to the caller.
 app.MapPost("/api/loan-applications", async (HttpContext context) =>
 {
-    var request = await context.Request.ReadFromJsonAsync<LoanApplicationRequest>();
-    if (request is null)
+    var request = await context.Request.ReadFromJsonAsync<JsonElement>();
+    if (request.ValueKind == JsonValueKind.Undefined)
     {
         return Results.BadRequest(new { error = "Invalid request body" });
     }
+    
+    // Debug logging to see what the UI is actually sending
+    Console.WriteLine($"[BFF] Received loan application request: {JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true })}");
     using var http = new HttpClient { BaseAddress = new Uri(orchestratorBaseUrl) };
     var response = await http.PostAsJsonAsync("/api/loan-applications", request);
     if (!response.IsSuccessStatusCode)

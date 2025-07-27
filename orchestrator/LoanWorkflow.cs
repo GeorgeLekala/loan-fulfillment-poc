@@ -75,6 +75,12 @@ namespace LoanFulfilment.Orchestrator
             var agreement = await Workflow.ExecuteActivityAsync(
                 (LoanActivitiesImpl activities) => activities.CreateProductAgreementAsync(offer),
                 activityOptions);
+            
+            // Notify UI that the agreement is prepared
+            await Workflow.ExecuteActivityAsync(
+                (LoanActivitiesImpl activities) => activities.PublishEventAsync(applicationId, "AgreementCreated", agreement),
+                activityOptions);
+                
             var account = await Workflow.ExecuteActivityAsync(
                 (LoanActivitiesImpl activities) => activities.CreateLoanAccountAsync(agreement),
                 activityOptions);

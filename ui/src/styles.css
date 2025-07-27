@@ -457,3 +457,435 @@ body {
     display: none;
   }
 }
+
+/* Agreement View Styles */
+.agreement-view {
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.agreement-header {
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.agreement-header h2 {
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.agreement-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.agreement-meta .detail-item {
+  text-align: left;
+  padding: 0.75rem;
+  background: var(--secondary-color);
+  border-radius: var(--radius);
+}
+
+.agreement-section {
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+}
+
+.agreement-section h3 {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  border-bottom: 2px solid var(--secondary-color);
+  padding-bottom: 0.5rem;
+}
+
+.agreement-details .detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.agreement-details .detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: var(--secondary-color);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--primary-color);
+}
+
+.agreement-details .detail-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.agreement-details .detail-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.term-item {
+  display: flex;
+  padding: 0.75rem;
+  background: var(--secondary-color);
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+}
+
+.term-number {
+  background: var(--primary-color);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.term-text {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.compliance-info .compliance-item {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--secondary-color);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--accent-color);
+}
+
+.compliance-item h4 {
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.consumer-rights {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.consumer-rights h3 {
+  color: white;
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+.rights-info ul {
+  list-style: none;
+  padding: 0;
+}
+
+.rights-info li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  line-height: 1.5;
+}
+
+.rights-info li:last-child {
+  border-bottom: none;
+}
+
+.agreement-actions {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: var(--accent-color);
+  color: white;
+  border-radius: var(--radius);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Disbursement View Styles */
+.disbursement-view {
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.success-header {
+  background: linear-gradient(135deg, var(--accent-color), #059669);
+  color: white;
+  padding: 3rem 2rem;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.success-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.success-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.disbursement-summary {
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.summary-card h2 {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.summary-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.summary-details .detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  background: var(--secondary-color);
+  border-radius: var(--radius);
+}
+
+.summary-details .detail-item.highlight {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 2px solid var(--warning-color);
+}
+
+.summary-details .detail-value.amount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent-color);
+}
+
+.account-section, .schedule-section, .config-section, .services-section, 
+.next-steps-section, .reminders-section, .compliance-footer {
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+}
+
+.account-section h2, .schedule-section h2, .config-section h2, 
+.services-section h2, .next-steps-section h2, .reminders-section h2 {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  border-bottom: 2px solid var(--secondary-color);
+  padding-bottom: 0.5rem;
+}
+
+.detail-grid, .config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.schedule-header {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.schedule-item, .config-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  background: var(--secondary-color);
+  border-radius: var(--radius);
+}
+
+.schedule-table {
+  overflow-x: auto;
+}
+
+.table-header, .table-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(100px, 1fr));
+  gap: 1rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table-header {
+  background: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+}
+
+.table-row {
+  background: var(--secondary-color);
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+}
+
+.services-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.service-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: var(--secondary-color);
+  border-radius: var(--radius);
+}
+
+.service-icon {
+  background: var(--accent-color);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 1.5rem;
+  background: var(--secondary-color);
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+
+.step-number {
+  background: var(--primary-color);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.step-content h4 {
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.reminder-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 1.5rem;
+  background: var(--secondary-color);
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+
+.reminder-icon {
+  font-size: 2rem;
+  margin-right: 1rem;
+}
+
+.reminder-content h4 {
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.compliance-footer {
+  background: linear-gradient(135deg, #1e40af, #1d4ed8);
+  color: white;
+  text-align: center;
+}
+
+.compliance-footer h3 {
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.compliance-links {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.compliance-links span {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+}
+
+/* Responsive Design for Agreement and Disbursement */
+@media (max-width: 768px) {
+  .agreement-meta {
+    grid-template-columns: 1fr;
+  }
+  
+  .detail-grid, .config-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .table-header, .table-row {
+    grid-template-columns: repeat(3, 1fr);
+    font-size: 0.875rem;
+  }
+  
+  .schedule-header {
+    grid-template-columns: 1fr;
+  }
+  
+  .services-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .compliance-links {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .step-item, .reminder-item {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .step-number, .reminder-icon {
+    margin-bottom: 1rem;
+    margin-right: 0;
+  }
+}

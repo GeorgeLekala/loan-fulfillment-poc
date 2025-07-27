@@ -24,7 +24,7 @@ const AddressForm = ({ formData, setFormData }) => {
                 }
               }
             }))}
-            placeholder="123 Main Street, Apt 4B"
+            placeholder="123 Church Street, Sandton"
             required
           />
         </div>
@@ -45,13 +45,13 @@ const AddressForm = ({ formData, setFormData }) => {
                 }
               }
             }))}
-            placeholder="New York"
+            placeholder="Johannesburg"
             required
           />
         </div>
         
         <div className="form-group">
-          <label className="form-label">State *</label>
+          <label className="form-label">Province *</label>
           <select
             className="form-select"
             value={formData.applicantProfile?.primaryAddress?.state || ''}
@@ -67,17 +67,16 @@ const AddressForm = ({ formData, setFormData }) => {
             }))}
             required
           >
-            <option value="">Select State</option>
-            <option value="NY">New York</option>
-            <option value="CA">California</option>
-            <option value="TX">Texas</option>
-            <option value="FL">Florida</option>
-            <option value="IL">Illinois</option>
-            <option value="PA">Pennsylvania</option>
-            <option value="OH">Ohio</option>
-            <option value="GA">Georgia</option>
-            <option value="NC">North Carolina</option>
-            <option value="MI">Michigan</option>
+            <option value="">Select Province</option>
+            <option value="GP">Gauteng</option>
+            <option value="WC">Western Cape</option>
+            <option value="KZN">KwaZulu-Natal</option>
+            <option value="EC">Eastern Cape</option>
+            <option value="FS">Free State</option>
+            <option value="LP">Limpopo</option>
+            <option value="MP">Mpumalanga</option>
+            <option value="NW">North West</option>
+            <option value="NC">Northern Cape</option>
           </select>
         </div>
         
@@ -97,29 +96,9 @@ const AddressForm = ({ formData, setFormData }) => {
                 }
               }
             }))}
-            placeholder="10001"
-            maxLength="10"
+            placeholder="2196"
+            maxLength="4"
             required
-          />
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Country</label>
-          <input
-            type="text"
-            className="form-input"
-            value={formData.applicantProfile?.primaryAddress?.country || 'USA'}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              applicantProfile: {
-                ...prev.applicantProfile,
-                primaryAddress: {
-                  ...prev.applicantProfile?.primaryAddress,
-                  country: e.target.value
-                }
-              }
-            }))}
-            placeholder="USA"
           />
         </div>
       </div>
