@@ -154,6 +154,22 @@ body {
   border-color: var(--error-color);
 }
 
+.form-input.error {
+  border-color: var(--error-color);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.form-group-full {
+  grid-column: 1 / -1;
+}
+
+.error-message {
+  color: var(--error-color);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
 .form-select {
   padding: 0.75rem 1rem;
   border: 2px solid var(--border-color);

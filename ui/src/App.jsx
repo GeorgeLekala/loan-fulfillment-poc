@@ -9,6 +9,7 @@ import LoanOfferCard from './components/LoanOfferCard';
 import EligibilityResults from './components/EligibilityResults';
 import AgreementView from './components/AgreementView';
 import DisbursementView from './components/DisbursementView';
+import BankDetailsForm from './components/BankDetailsForm';
 
 // Base URL for the BFF API
 const API_BASE = 'http://localhost:5001/api';
@@ -97,9 +98,9 @@ export default function App() {
           setAgreement(evt.data);
           setStatusMessage('Loan agreement prepared. Please review and accept the terms.');
         } else if (evt.stage === 'AccountCreated') {
-          setCurrentStage('account');
+          setCurrentStage('bank-details');
           setAccount(evt.data);
-          setStatusMessage('Loan account created successfully. Preparing fund disbursement...');
+          setStatusMessage('Account created successfully. Please provide your bank details for loan disbursement.');
         } else if (evt.stage === 'LoanDisbursed') {
           setCurrentStage('disbursement');
           
@@ -372,6 +373,34 @@ export default function App() {
     }
   };
 
+  // Handle completion of bank details and trigger final disbursement
+  const handleBankDetailsComplete = async () => {
+    setLoading(true);
+    try {
+      setStatusMessage('Processing loan disbursement...');
+      
+      // Trigger the disbursement workflow step
+      const response = await fetch(`${API_BASE}/loan-applications/${applicationId}/disburse`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        // The SSE will handle the stage update when disbursement completes
+        setStatusMessage('Disbursement initiated. Please wait...');
+      } else {
+        throw new Error('Failed to initiate disbursement');
+      }
+    } catch (error) {
+      console.error('Error initiating disbursement:', error);
+      setStatusMessage('Error processing disbursement. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="app-container">
       <div className="header">
@@ -418,6 +447,14 @@ export default function App() {
               )}
             </div>
           </div>
+        </div>
+      ) : currentStage === 'bank-details' ? (
+        // Render BankDetailsForm for collecting bank account information
+        <div style={{ width: '100%', maxWidth: '800px' }}>
+          <BankDetailsForm
+            applicationId={applicationId}
+            onComplete={handleBankDetailsComplete}
+          />
         </div>
       ) : currentStage === 'disbursement' || (account && currentStage === 'account') ? (
         // Render DisbursementView independently for a clean, celebratory layout

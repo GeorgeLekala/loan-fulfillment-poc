@@ -131,6 +131,32 @@ app.MapPost("/api/loan-applications/{id}/accept-offer", async (string id) =>
 .WithSummary("Accept a loan offer")
 .WithDescription("Signals the workflow that the loan offer has been accepted for the specified application.");
 
+// Handle disbursement details submission from the UI. This endpoint
+// receives additional customer information required for final disbursement
+// and triggers the disbursement process.
+app.MapPost("/api/loan-applications/{id}/disbursement-details", async (string id, DisbursementDetailsRequest request) =>
+{
+    Console.WriteLine($"[BFF] Received bank details for application: {id}");
+    Console.WriteLine($"[BFF] Bank: {request.BankAccountInformation?.BankName}");
+    Console.WriteLine($"[BFF] Account Number: {request.BankAccountInformation?.AccountNumber}");
+    
+    using var http = new HttpClient { BaseAddress = new Uri(orchestratorBaseUrl) };
+    var response = await http.PostAsJsonAsync($"/api/loan-applications/{id}/disbursement-details", request);
+    
+    if (!response.IsSuccessStatusCode)
+    {
+        var error = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"[BFF] Orchestrator error for disbursement details: {response.StatusCode} - {error}");
+        return Results.StatusCode((int)response.StatusCode);
+    }
+    
+    Console.WriteLine($"[BFF] Disbursement details submitted successfully for {id}");
+    return Results.Accepted();
+})
+.WithName("SubmitDisbursementDetails")
+.WithSummary("Submit disbursement details")
+.WithDescription("Submits additional customer information required for loan disbursement including full name, address, and bank account details as required by NCR regulations.");
+
 // SSE endpoint to stream workflow events to the UI.  The endpoint
 // holds the connection open and writes events as they are enqueued.  If
 // the connection is closed or aborted the loop terminates.  Each
@@ -257,6 +283,35 @@ record LoanPreferences(
     [property: JsonPropertyName("MaxMonthlyPayment")] decimal? MaxMonthlyPayment,
     [property: JsonPropertyName("ProductType")] string ProductType = "Personal Loan",
     [property: JsonPropertyName("AutoPayEnrollment")] bool AutoPayEnrollment = false
+);
+
+// Disbursement details request model for collecting additional information
+// Record for handling bank account details required for loan disbursement
+record DisbursementDetailsRequest(
+    [property: JsonPropertyName("bankAccountInformation")] 
+    [Required(ErrorMessage = "Bank account information is required")]
+    BankAccountInformation BankAccountInformation
+);
+
+record BankAccountInformation(
+    [property: JsonPropertyName("bankName")] 
+    [Required(ErrorMessage = "Bank name is required")]
+    [StringLength(100, ErrorMessage = "Bank name cannot exceed 100 characters")]
+    string BankName,
+    
+    [property: JsonPropertyName("accountNumber")] 
+    [Required(ErrorMessage = "Account number is required")]
+    [StringLength(11, MinimumLength = 9, ErrorMessage = "Account number must be 9-11 digits")]
+    string AccountNumber,
+    
+    [property: JsonPropertyName("branchCode")] 
+    [Required(ErrorMessage = "Branch code is required")]
+    [StringLength(6, MinimumLength = 6, ErrorMessage = "Branch code must be 6 digits")]
+    string BranchCode,
+    
+    [property: JsonPropertyName("accountType")] 
+    [Required(ErrorMessage = "Account type is required")]
+    string AccountType
 );
 
 // Event model representing a workflow milestone.  The Data property is

@@ -8,11 +8,12 @@ const StatusTimeline = ({ currentStage, applicationId }) => {
     { id: 'documents', name: 'Document Verification', icon: '📄' },
     { id: 'approval', name: 'Offer Accepted', icon: '✅' },
     { id: 'account', name: 'Account Created', icon: '🏦' },
+    { id: 'bank-details', name: 'Bank Details', icon: '�' },
     { id: 'disbursement', name: 'Funds Disbursed', icon: '💸' }
   ];
 
   const getStageStatus = (stageId) => {
-    const stageOrder = ['application', 'eligibility', 'offer', 'documents', 'approval', 'account', 'disbursement'];
+    const stageOrder = ['application', 'eligibility', 'offer', 'documents', 'approval', 'account', 'bank-details', 'disbursement'];
     const currentIndex = stageOrder.indexOf(currentStage);
     const stageIndex = stageOrder.indexOf(stageId);
     
