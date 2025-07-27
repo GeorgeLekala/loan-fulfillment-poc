@@ -1,6 +1,13 @@
 import React from 'react';
 
 const DisbursementView = ({ account, payment, applicationId }) => {
+  // Debug logging to see what data we're receiving
+  console.log('DisbursementView Props:', { account, payment, applicationId });
+  console.log('Account Details:', account?.Details);
+  console.log('Account Schedule:', account?.Schedule);
+  console.log('Account Configuration:', account?.Configuration);
+  console.log('Account ServiceLevels:', account?.ServiceLevels);
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-ZA', {
       style: 'currency',
@@ -21,10 +28,37 @@ const DisbursementView = ({ account, payment, applicationId }) => {
     loanAccountId: account?.LoanAccountId || account?.loanAccountId || 'N/A',
     agreementId: account?.AgreementId || account?.agreementId || 'N/A',
     customerRef: account?.CustomerReference || account?.customerReference || 'N/A',
-    details: account?.Details || account?.details || {},
-    schedule: account?.Schedule || account?.schedule || {},
-    configuration: account?.Configuration || account?.configuration || {},
-    serviceLevels: account?.ServiceLevels || account?.serviceLevels || {},
+    details: {
+      ProductType: account?.Details?.ProductType || 'Personal Loan',
+      OriginalPrincipal: account?.Details?.OriginalPrincipal || payment?.Amount || payment?.amount || 50000,
+      CurrentBalance: account?.Details?.CurrentBalance || payment?.Amount || payment?.amount || 50000,
+      InterestRate: account?.Details?.InterestRate || 0.12,
+      OriginalTermMonths: account?.Details?.OriginalTermMonths || 24,
+      FirstPaymentDate: account?.Details?.FirstPaymentDate || new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString(),
+      MaturityDate: account?.Details?.MaturityDate || new Date(new Date().setMonth(new Date().getMonth() + 25)).toISOString(),
+      LoanPurpose: account?.Details?.LoanPurpose || 'Personal Use'
+    },
+    schedule: {
+      MonthlyPayment: account?.Schedule?.MonthlyPayment || ((payment?.Amount || payment?.amount || 50000) / 24),
+      PaymentDay: account?.Schedule?.PaymentDay || 1,
+      UpcomingPayments: account?.Schedule?.UpcomingPayments || []
+    },
+    configuration: {
+      AutoPayEnabled: account?.Configuration?.AutoPayEnabled || false,
+      StatementDelivery: account?.Configuration?.StatementDelivery || 'Electronic',
+      PaperlessEnrolled: account?.Configuration?.PaperlessEnrolled || true
+    },
+    serviceLevels: {
+      CustomerSegment: account?.ServiceLevels?.CustomerSegment || 'Standard',
+      SupportLevel: account?.ServiceLevels?.SupportLevel || 'Standard',
+      AvailableServices: account?.ServiceLevels?.AvailableServices || [
+        'Online Account Management',
+        'Mobile App Access', 
+        '24/7 Customer Support',
+        'Payment Deferrals',
+        'Statement Download'
+      ]
+    },
     status: account?.Status || account?.status || {},
     createdAt: account?.CreatedAt || account?.createdAt
   };
