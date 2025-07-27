@@ -1799,9 +1799,10 @@ body {
 
 .progress-steps {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0.5rem;
   position: relative;
+  margin-top: 1rem;
 }
 
 .progress-step-item {
@@ -1811,13 +1812,14 @@ body {
   text-align: center;
   position: relative;
   z-index: 2;
+  min-width: 0; /* Allow content to shrink */
 }
 
 .step-connector {
   position: absolute;
-  top: 24px;
-  left: 50%;
-  width: 100%;
+  top: 20px;
+  left: 60%;
+  width: 80%;
   height: 2px;
   z-index: 1;
 }
@@ -1834,13 +1836,13 @@ body {
 }
 
 .step-circle {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   position: relative;
   transition: all 0.3s ease;
   z-index: 3;
@@ -1874,7 +1876,7 @@ body {
 }
 
 .step-icon {
-  font-size: 1.2rem;
+  font-size: 1rem;
   position: relative;
   z-index: 2;
 }
@@ -1897,14 +1899,17 @@ body {
 }
 
 .step-content {
-  max-width: 120px;
+  max-width: 100px;
+  min-width: 0;
 }
 
 .step-label {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.1rem;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .progress-step-item.pending .step-label {
@@ -1920,10 +1925,12 @@ body {
 }
 
 .step-description {
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   color: var(--text-secondary);
-  line-height: 1.2;
-  margin-bottom: 0.25rem;
+  line-height: 1.1;
+  margin-bottom: 0.1rem;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .progress-step-item.active .step-description {
@@ -1932,10 +1939,11 @@ body {
 }
 
 .step-status {
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.025em;
+  word-wrap: break-word;
 }
 
 .progress-step-item.completed .step-status {
@@ -1970,6 +1978,30 @@ body {
 }
 
 /* Responsive Design for Global Progress */
+@media (max-width: 1024px) {
+  .progress-steps {
+    grid-template-columns: repeat(8, 1fr);
+    gap: 0.3rem;
+  }
+  
+  .step-circle {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .step-label {
+    font-size: 0.7rem;
+  }
+  
+  .step-description {
+    font-size: 0.6rem;
+  }
+  
+  .step-content {
+    max-width: 90px;
+  }
+}
+
 @media (max-width: 768px) {
   .global-progress-container {
     padding: 1rem;
@@ -1991,39 +2023,46 @@ body {
     padding: 0.4rem 0.8rem;
   }
   
+  .application-id {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+  
   .progress-steps {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.3rem;
   }
   
   .step-circle {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 0.5rem;
+    width: 32px;
+    height: 32px;
+    margin-bottom: 0.3rem;
   }
   
   .step-icon {
-    font-size: 1rem;
-  }
-  
-  .step-label {
     font-size: 0.8rem;
   }
   
+  .step-label {
+    font-size: 0.65rem;
+  }
+  
   .step-description {
-    font-size: 0.7rem;
+    font-size: 0.55rem;
+  }
+  
+  .step-status {
+    font-size: 0.5rem;
   }
   
   .step-content {
-    max-width: 100px;
+    max-width: 80px;
   }
   
-  /* Show only key steps on mobile */
-  .progress-step-item:nth-child(2) {
-    display: none;
-  }
-  
-  .progress-step-item:nth-child(4) {
+  /* Hide some intermediate steps on mobile for cleaner layout */
+  .progress-step-item:nth-child(4),
+  .progress-step-item:nth-child(5),
+  .progress-step-item:nth-child(6) {
     display: none;
   }
 }
