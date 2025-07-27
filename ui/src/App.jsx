@@ -382,6 +382,13 @@ export default function App() {
             </div>
           </div>
         </div>
+      ) : currentStage === 'disbursement' || (account && currentStage === 'account') ? (
+        // Render DisbursementView independently for a clean, celebratory layout
+        <DisbursementView 
+          account={account}
+          payment={payment}
+          applicationId={applicationId}
+        />
       ) : (
         <div style={{ width: '100%', maxWidth: '1000px' }}>
           <div className="main-card">
@@ -428,14 +435,6 @@ export default function App() {
                   agreement={agreement}
                   onProceed={acceptAgreement}
                   loading={loading}
-                />
-              )}
-
-              {(currentStage === 'disbursement' || (account && currentStage === 'account')) && (
-                <DisbursementView 
-                  account={account}
-                  payment={payment}
-                  applicationId={applicationId}
                 />
               )}
             </div>
