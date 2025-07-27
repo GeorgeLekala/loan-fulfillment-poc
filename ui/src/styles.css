@@ -309,20 +309,31 @@ body {
 }
 
 .detail-item {
-  text-align: center;
-  padding: 1rem;
-  background: var(--secondary-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, var(--secondary-color), #f1f5f9);
   border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.detail-item:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
 }
 
 .detail-label {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  margin-bottom: 0.25rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .detail-value {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -650,38 +661,88 @@ body {
 
 .summary-card {
   background: white;
-  padding: 2rem;
+  padding: 2.5rem;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
 }
 
 .summary-card h2 {
   color: var(--primary-color);
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.summary-card h2::before {
+  content: "💰";
   font-size: 1.5rem;
 }
 
 .summary-details {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
 
 .summary-details .detail-item {
   display: flex;
-  justify-content: space-between;
-  padding: 1rem;
-  background: var(--secondary-color);
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, var(--secondary-color), #f1f5f9);
   border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.summary-details .detail-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
 }
 
 .summary-details .detail-item.highlight {
   background: linear-gradient(135deg, #fef3c7, #fde68a);
   border: 2px solid var(--warning-color);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+}
+
+.summary-details .detail-item.highlight::before {
+  content: "⭐";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--warning-color);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+.summary-details .detail-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.summary-details .detail-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .summary-details .detail-value.amount {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--accent-color);
 }
@@ -689,25 +750,118 @@ body {
 .account-section, .schedule-section, .config-section, .services-section, 
 .next-steps-section, .reminders-section, .compliance-footer {
   background: white;
-  padding: 2rem;
+  padding: 2.5rem;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-lg);
   margin-bottom: 2rem;
+  border: 1px solid var(--border-color);
 }
 
 .account-section h2, .schedule-section h2, .config-section h2, 
 .services-section h2, .next-steps-section h2, .reminders-section h2 {
   color: var(--primary-color);
-  margin-bottom: 1.5rem;
-  font-size: 1.25rem;
-  border-bottom: 2px solid var(--secondary-color);
-  padding-bottom: 0.5rem;
+  margin-bottom: 2rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  border-bottom: 3px solid var(--primary-color);
+  padding-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .detail-grid, .config-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.detail-grid .detail-item, .config-grid .config-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, var(--secondary-color), #f1f5f9);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.detail-grid .detail-item:hover, .config-grid .config-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-color: var(--primary-color);
+}
+
+.detail-grid .detail-label, .config-grid .config-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-grid .detail-value, .config-grid .config-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Special styling for important loan details */
+.detail-grid .detail-item:nth-child(1), /* Product Type */
+.detail-grid .detail-item:nth-child(2), /* Original Principal */
+.detail-grid .detail-item:nth-child(4)  /* Interest Rate */ {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border-color: var(--primary-color);
+}
+
+.detail-grid .detail-item:nth-child(1)::before {
+  content: "🏦";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--primary-color);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+.detail-grid .detail-item:nth-child(2)::before {
+  content: "💰";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--accent-color);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+.detail-grid .detail-item:nth-child(4)::before {
+  content: "📊";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--warning-color);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
 }
 
 .schedule-header {
@@ -861,6 +1015,24 @@ body {
     grid-template-columns: 1fr;
   }
   
+  .summary-details {
+    grid-template-columns: 1fr;
+  }
+  
+  .summary-card {
+    padding: 1.5rem;
+  }
+  
+  .account-section, .schedule-section, .config-section, .services-section, 
+  .next-steps-section, .reminders-section, .compliance-footer {
+    padding: 1.5rem;
+  }
+  
+  .summary-card h2, .account-section h2, .schedule-section h2, .config-section h2, 
+  .services-section h2, .next-steps-section h2, .reminders-section h2 {
+    font-size: 1.5rem;
+  }
+  
   .table-header, .table-row {
     grid-template-columns: repeat(3, 1fr);
     font-size: 0.875rem;
@@ -887,5 +1059,11 @@ body {
   .step-number, .reminder-icon {
     margin-bottom: 1rem;
     margin-right: 0;
+  }
+  
+  /* Hide the decorative icons on mobile for cleaner look */
+  .summary-details .detail-item.highlight::before,
+  .detail-grid .detail-item::before {
+    display: none;
   }
 }
