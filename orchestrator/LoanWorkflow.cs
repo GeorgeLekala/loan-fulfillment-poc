@@ -15,6 +15,7 @@ namespace LoanFulfilment.Orchestrator
     {
         private bool _documentsVerified;
         private bool _offerAccepted;
+        private bool _disbursementTriggered;
 
         // Signal handler invoked when documents have been verified.
         [WorkflowSignal]
@@ -29,6 +30,14 @@ namespace LoanFulfilment.Orchestrator
         public Task OfferAccepted()
         {
             _offerAccepted = true;
+            return Task.CompletedTask;
+        }
+
+        // Signal handler invoked when disbursement is triggered with bank details.
+        [WorkflowSignal]
+        public Task DisbursementTriggered()
+        {
+            _disbursementTriggered = true;
             return Task.CompletedTask;
         }
 
@@ -71,7 +80,7 @@ namespace LoanFulfilment.Orchestrator
                 (LoanActivitiesImpl activities) => activities.PublishEventAsync(applicationId, "OfferAccepted", null),
                 activityOptions);
 
-            // 5. Capture agreement, create loan account and disburse funds
+            // 5. Create agreement and loan account
             var agreement = await Workflow.ExecuteActivityAsync(
                 (LoanActivitiesImpl activities) => activities.CreateProductAgreementAsync(offer),
                 activityOptions);
@@ -84,9 +93,20 @@ namespace LoanFulfilment.Orchestrator
             var account = await Workflow.ExecuteActivityAsync(
                 (LoanActivitiesImpl activities) => activities.CreateLoanAccountAsync(agreement),
                 activityOptions);
+            
+            // Notify UI that account is created and ready for bank details
+            await Workflow.ExecuteActivityAsync(
+                (LoanActivitiesImpl activities) => activities.PublishEventAsync(applicationId, "AccountCreated", account),
+                activityOptions);
+
+            // 6. Wait for disbursement trigger (with bank details)
+            await Workflow.WaitConditionAsync(() => _disbursementTriggered);
+
+            // 7. Execute disbursement
             var payment = await Workflow.ExecuteActivityAsync(
                 (LoanActivitiesImpl activities) => activities.ExecuteDisbursementAsync(account),
                 activityOptions);
+            
             // Notify UI that the loan has been disbursed
             await Workflow.ExecuteActivityAsync(
                 (LoanActivitiesImpl activities) => activities.PublishEventAsync(applicationId, "LoanDisbursed", account),

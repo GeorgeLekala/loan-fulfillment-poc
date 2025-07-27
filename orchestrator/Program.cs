@@ -191,25 +191,17 @@ POST /api/loan-applications/12345678-1234-1234-1234-123456789012/verify-document
 // unblocks the workflow from waiting on the offer acceptance stage.
 app.MapPost("/api/loan-applications/{id}/accept-offer", async (string id, TemporalClient client) =>
 {
-    var handle = client.GetWorkflowHandle<ILoanWorkflow>(id);
-    await handle.SignalAsync(wf => wf.OfferAccepted());
+    var workflowHandle = client.GetWorkflowHandle<ILoanWorkflow>(id);
+    await workflowHandle.SignalAsync(wf => wf.OfferAccepted());
     return Results.Accepted();
-})
-.WithName("SignalOfferAcceptance")
-.WithSummary("Signal offer acceptance")
-.WithDescription(@"Sends a signal to the workflow indicating that the applicant has accepted the loan offer.
+});
 
-**Example Request:**
-```
-POST /api/loan-applications/12345678-1234-1234-1234-123456789012/accept-offer
-```
-
-**Example Response:**
-- **202 Accepted**: Signal sent successfully, workflow will proceed to next stage
-- **404 Not Found**: Workflow not found or already completed  
-- **500 Internal Server Error**: Temporal service error
-
-**Process:** This signal transitions the workflow from the offer review stage to agreement creation, account setup, and fund disbursement stages.");
+app.MapPost("/api/loan-applications/{id}/disburse", async (string id, TemporalClient client) =>
+{
+    var workflowHandle = client.GetWorkflowHandle<ILoanWorkflow>(id);
+    await workflowHandle.SignalAsync(wf => wf.DisbursementTriggered());
+    return Results.Accepted();
+});
 
 // Endpoint to handle disbursement details submission and trigger final disbursement
 app.MapPost("/api/loan-applications/{id}/disbursement-details", (string id, DisbursementDetailsRequest request, TemporalClient client) =>
@@ -422,4 +414,18 @@ record BankAccountInformation(
     [property: JsonPropertyName("accountType")] 
     [Required(ErrorMessage = "Account type is required")]
     string AccountType
+);
+
+// Request model for accepting an offer
+record AcceptOfferRequest(
+    [property: JsonPropertyName("applicationId")] 
+    [Required(ErrorMessage = "Application ID is required")]
+    string ApplicationId
+);
+
+// Request model for triggering disbursement
+record DisburseRequest(
+    [property: JsonPropertyName("applicationId")] 
+    [Required(ErrorMessage = "Application ID is required")]
+    string ApplicationId
 );

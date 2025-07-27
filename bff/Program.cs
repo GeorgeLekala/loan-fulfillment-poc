@@ -157,6 +157,28 @@ app.MapPost("/api/loan-applications/{id}/disbursement-details", async (string id
 .WithSummary("Submit disbursement details")
 .WithDescription("Submits additional customer information required for loan disbursement including full name, address, and bank account details as required by NCR regulations.");
 
+// Trigger final loan disbursement after bank details are provided
+app.MapPost("/api/loan-applications/{id}/disburse", async (string id) =>
+{
+    Console.WriteLine($"[BFF] Triggering disbursement for application: {id}");
+    
+    using var http = new HttpClient { BaseAddress = new Uri(orchestratorBaseUrl) };
+    var response = await http.PostAsync($"/api/loan-applications/{id}/disburse", null);
+    
+    if (!response.IsSuccessStatusCode)
+    {
+        var error = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"[BFF] Orchestrator error for disbursement: {response.StatusCode} - {error}");
+        return Results.StatusCode((int)response.StatusCode);
+    }
+    
+    Console.WriteLine($"[BFF] Disbursement triggered successfully for {id}");
+    return Results.Accepted();
+})
+.WithName("TriggerDisbursement")
+.WithSummary("Trigger loan disbursement")
+.WithDescription("Triggers the final loan disbursement process after all required information has been collected.");
+
 // SSE endpoint to stream workflow events to the UI.  The endpoint
 // holds the connection open and writes events as they are enqueued.  If
 // the connection is closed or aborted the loop terminates.  Each

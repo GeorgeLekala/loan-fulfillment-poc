@@ -22,5 +22,8 @@ namespace LoanFulfilment.Orchestrator
 
         [WorkflowSignal]
         Task OfferAccepted();
+
+        [WorkflowSignal]
+        Task DisbursementTriggered();
     }
 }
