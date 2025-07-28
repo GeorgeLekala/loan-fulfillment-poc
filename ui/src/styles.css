@@ -1,16 +1,21 @@
-/* Modern Banking UI Styles */
+/* DirectAxis Banking UI Styles - Authentic Brand Colors */
 :root {
-  --primary-color: #1e40af;
-  --primary-hover: #1d4ed8;
-  --secondary-color: #f8fafc;
-  --accent-color: #10b981;
-  --warning-color: #f59e0b;
-  --error-color: #ef4444;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --primary-color: #005290;           /* DirectAxis Brand Blue (Authentic) */
+  --primary-hover: #003f6e;           /* DirectAxis Button Hover Blue */
+  --primary-light: #e6f2ff;           /* Light Blue for backgrounds */
+  --accent-color: #007f7f;            /* DirectAxis Highlight Teal (Authentic) */
+  --accent-hover: #006666;            /* Darker Teal for hover */
+  --secondary-color: #eeeeee;         /* DirectAxis Neutral Light Gray */
+  --warning-color: #f59e0b;           /* Orange for warnings */
+  --error-color: #ef4444;             /* Red for errors */
+  --success-color: #007f7f;           /* DirectAxis Teal for success */
+  --text-primary: #000000;            /* DirectAxis Text Black */
+  --text-secondary: #666666;          /* DirectAxis Content Gray */
+  --text-light: #999999;              /* Light Gray */
+  --white: #ffffff;                   /* DirectAxis Soft White */
+  --border-color: #dddddd;            /* Light Border */
+  --shadow: 0 4px 6px -1px rgba(0, 82, 144, 0.1), 0 2px 4px -1px rgba(0, 82, 144, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 82, 144, 0.1), 0 4px 6px -2px rgba(0, 82, 144, 0.05);
   --radius: 8px;
   --radius-lg: 12px;
 }
@@ -26,7 +31,7 @@ body {
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-hover) 100%);
   min-height: 100vh;
   color: var(--text-primary);
 }
@@ -45,17 +50,48 @@ body {
   color: white;
 }
 
-.header h1 {
-  font-size: 3rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.header p {
+.logo-icon {
+  font-size: 3rem;
+  background: var(--white);
+  color: var(--primary-color);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(0, 82, 144, 0.2);
+}
+
+.brand-text h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  font-size: 1rem;
+  font-weight: 300;
+  opacity: 0.9;
+  display: block;
+  margin-top: -0.5rem;
+}
+
+.header > p {
   font-size: 1.25rem;
   opacity: 0.9;
   font-weight: 300;
+  margin-top: 1rem;
 }
 
 .main-card {
@@ -147,7 +183,7 @@ body {
 .form-input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 82, 144, 0.1);
 }
 
 .form-input:invalid {
@@ -183,7 +219,7 @@ body {
 .form-select:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 82, 144, 0.1);
 }
 
 .btn {
@@ -209,7 +245,7 @@ body {
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 8px 25px rgba(0, 82, 144, 0.3);
 }
 
 .btn-primary:disabled {
@@ -2077,4 +2113,68 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* DirectAxis Brand Enhancements */
+.directaxis-brand {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+.success-message {
+  background: linear-gradient(135deg, var(--success-color), var(--accent-color));
+  color: white;
+  padding: 1rem;
+  border-radius: var(--radius);
+  text-align: center;
+  margin: 1rem 0;
+  box-shadow: var(--shadow);
+}
+
+.directaxis-footer {
+  margin-top: 2rem;
+  padding: 1rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+}
+
+.directaxis-footer a {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+}
+
+.directaxis-footer a:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+/* Enhanced card styling for DirectAxis */
+.main-card {
+  border-top: 4px solid var(--primary-color);
+}
+
+/* Enhanced focus states with DirectAxis colors */
+.form-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 82, 144, 0.1);
+}
+
+/* DirectAxis button enhancements */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+  border: none;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--primary-hover) 0%, var(--accent-hover) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 82, 144, 0.3);
 }

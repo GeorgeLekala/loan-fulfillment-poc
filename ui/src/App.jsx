@@ -405,8 +405,14 @@ export default function App() {
   return (
     <div className="app-container">
       <div className="header">
-        <h1>🏦 SA Banking Loan Application</h1>
-        <p>Secure, NCR-compliant, and comprehensive loan processing</p>
+        <div className="logo-container">
+          <div className="logo-icon">🏦</div>
+          <div className="brand-text">
+            <h1>DirectAxis</h1>
+            <span className="tagline">Personal Loans</span>
+          </div>
+        </div>
+        <p>Your trusted partner for personal loans - Fast, secure, and NCR-compliant</p>
       </div>
 
       {/* Global Progress Bar - Always Visible */}
@@ -419,8 +425,8 @@ export default function App() {
       {!applicationId ? (
         <div className="main-card">
           <div className="card-header">
-            <h2>Personal Loan Application</h2>
-            <p>Complete your application in compliance with National Credit Act standards</p>
+            <h2>DirectAxis Personal Loan Application</h2>
+            <p>Fast, flexible loans with competitive rates - NCR compliant and transparent</p>
           </div>
           
           <div className="card-content">
@@ -523,6 +529,16 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* DirectAxis Footer */}
+      <div className="directaxis-footer">
+        <p>© 2025 DirectAxis. All rights reserved. | NCR Registration: NCRCP123</p>
+        <p>
+          <a href="#terms">Terms & Conditions</a> | 
+          <a href="#privacy"> Privacy Policy</a> | 
+          <a href="#contact"> Contact Us</a>
+        </p>
+      </div>
     </div>
   );
 }
