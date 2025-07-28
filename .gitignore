@@ -116,7 +116,6 @@ StyleCopReport.xml
 
 # Docker
 .dockerignore
-Dockerfile
 docker-compose.override.yml
 .docker/
 
